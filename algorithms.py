@@ -7,4 +7,4 @@ from algorithms import (
     get_shelf_summary_ffd,
     get_sheet_summary_guillotine,
     plot_placements_shelf,
-    plot_placements_guillotine
+    plot_placements_guillotine)
