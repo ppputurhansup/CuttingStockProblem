@@ -10,6 +10,10 @@ from algorithms import (
 
 st.title("📦 Cutting Stock Problem with Rotation")
 
+# Initialize session state
+if 'calculated' not in st.session_state:
+    st.session_state.calculated = False
+
 # --- ขนาดแผ่น ---
 st.header("🔖 ขนาดแผ่นเมทัลชีท")
 sheet_width = st.number_input("ความกว้างแผ่น (cm)", value=91.4)
@@ -40,30 +44,35 @@ elif method == "CSV":
 
 # --- ประมวลผล ---
 if orders and st.button("🚀 คำนวณ"):
-    shelves_ffd = first_fit_decreasing_rotated(orders, sheet_width)
-    shelves_bfd = best_fit_decreasing_rotated(orders, sheet_width)
-    placements_guillotine, sheets_guillotine = guillotine_cutting_rotated(orders, sheet_width, sheet_length)
+    st.session_state.shelves_ffd = first_fit_decreasing_rotated(orders, sheet_width)
+    st.session_state.shelves_bfd = best_fit_decreasing_rotated(orders, sheet_width)
+    st.session_state.placements_guillotine, st.session_state.sheets_guillotine = guillotine_cutting_rotated(orders, sheet_width, sheet_length)
 
-    kpi = pd.DataFrame({
+    st.session_state.kpi = pd.DataFrame({
         "Algorithm": ["FFD Rotated", "BFD Rotated", "Guillotine Rotated"],
-        "Sheets Used": [len(shelves_ffd), len(shelves_bfd), len(sheets_guillotine)]
+        "Sheets Used": [len(st.session_state.shelves_ffd), len(st.session_state.shelves_bfd), len(st.session_state.sheets_guillotine)]
     })
+
+    st.session_state.calculated = True
+
+# --- แสดงผลลัพธ์ (จะไม่หายเมื่อเลือก visualization ใหม่) ---
+if st.session_state.calculated:
     st.subheader("📌 KPI")
-    st.dataframe(kpi)
+    st.dataframe(st.session_state.kpi)
 
     selected_algo = st.selectbox("🔍 เลือกอัลกอริทึมดู Visualization",
                                  ["FFD Rotated", "BFD Rotated", "Guillotine Rotated"])
 
     if selected_algo == "FFD Rotated":
-        figs = plot_placements_shelf_plotly(shelves_ffd, sheet_width, sheet_length, selected_algo)
+        figs = plot_placements_shelf_plotly(st.session_state.shelves_ffd, sheet_width, sheet_length, selected_algo)
         for fig in figs:
             st.plotly_chart(fig)
 
     elif selected_algo == "BFD Rotated":
-        figs = plot_placements_shelf_plotly(shelves_bfd, sheet_width, sheet_length, selected_algo)
+        figs = plot_placements_shelf_plotly(st.session_state.shelves_bfd, sheet_width, sheet_length, selected_algo)
         for fig in figs:
             st.plotly_chart(fig)
 
     elif selected_algo == "Guillotine Rotated":
-        fig = plot_placements_guillotine(placements_guillotine, sheets_guillotine, sheet_width, sheet_length, selected_algo)
+        fig = plot_placements_guillotine(st.session_state.placements_guillotine, st.session_state.sheets_guillotine, sheet_width, sheet_length, selected_algo)
         st.pyplot(fig)
