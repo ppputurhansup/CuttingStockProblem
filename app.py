@@ -51,18 +51,6 @@ if orders and st.button("🚀 คำนวณ"):
     st.subheader("📌 KPI")
     st.dataframe(kpi)
 
-    if orders and st.button("🚀 คำนวณ"):
-    shelves_ffd = first_fit_decreasing_rotated(orders, sheet_width)
-    shelves_bfd = best_fit_decreasing_rotated(orders, sheet_width)
-    placements_guillotine, sheets_guillotine = guillotine_cutting_rotated(orders, sheet_width, sheet_length)
-
-    kpi = pd.DataFrame({
-        "Algorithm": ["FFD Rotated", "BFD Rotated", "Guillotine Rotated"],
-        "Sheets Used": [len(shelves_ffd), len(shelves_bfd), len(sheets_guillotine)]
-    })
-    st.subheader("📌 KPI")
-    st.dataframe(kpi)
-
     selected_algo = st.selectbox("🔍 เลือกอัลกอริทึมดู Visualization",
                                  ["FFD Rotated", "BFD Rotated", "Guillotine Rotated"])
 
