@@ -56,8 +56,8 @@ if orders:
 
         # --- เรียกฟังก์ชันอัลกอริทึมที่มีอยู่ (FFD, BFD, Guillotine) ---
         with st.spinner("กำลังคำนวณ..."):
-            shelves_ffd = first_fit_decreasing_rotated((orders, sheet_width))
-            shelves_bfd = best_fit_decreasing_rotated((orders, sheet_width))
+            shelves_ffd = first_fit_decreasing_rotated(orders, sheet_width)
+            shelves_bfd = best_fit_decreasing_rotated(orders, sheet_width)
             placements_guillotine, sheets_guillotine = guillotine_cutting_rotated(orders, sheet_width, sheet_length)
 
         # --- สร้าง DataFrame KPI ---
