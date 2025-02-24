@@ -1,6 +1,8 @@
 import pandas as pd
 from collections import defaultdict
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches  # เพิ่มบรรทัดนี้
+
 
 # ----------------------------
 # 1. First Fit Decreasing (FFD) with Rotation (fixed)
