@@ -114,35 +114,36 @@ def guillotine_cutting_rotated(orders, sheet_width, sheet_length):
             else:
                 print("❌ Order", order, "ไม่สามารถวางบนแผ่นใหม่ได้")
     return placements, sheets
-# ----------------------------
-# สร้างตารางสรุปรายละเอียด per sheet สำหรับ shelf 2 มิติ
-# ----------------------------
-def plot_placements_shelf(sheets, sheet_width, sheet_length, algorithm_name):
-    num_sheets = len(sheets)
-    fig, axs = plt.subplots(1, num_sheets, figsize=(6*num_sheets, 8))
+# algorithms.py (ตัดฟังก์ชันอื่นออก เก็บที่เหลือไว้เหมือนเดิม)
 
-    if num_sheets == 1:
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import pandas as pd
+from collections import defaultdict
+
+def plot_placements_shelf(shelves, sheet_width, sheet_length, algorithm_name):
+    fig, axs = plt.subplots(1, len(shelves), figsize=(6*len(shelves), 8))
+
+    if len(shelves) == 1:
         axs = [axs]
 
-    for sheet_idx, shelves in enumerate(sheets):
+    for sheet_idx, shelf in enumerate(shelves):
         ax = axs[sheet_idx]
-        y_position = 0
         sheet_rect = patches.Rectangle((0, 0), sheet_width, sheet_length, linewidth=2, edgecolor='black', facecolor='none')
         ax.add_patch(sheet_rect)
 
-        for shelf in shelves:
-            if not shelf:  # เช็ค shelf ที่ไม่มีออเดอร์
-                continue   # ✅ เพิ่ม continue เพื่อข้าม shelf ว่าง
-            shelf_height = max(order[1] for order in shelf)
+        y_position = 0
+        for level in shelf:
+            shelf_height = max(item[1] for item in level)
             x_position = 0
-
-            for order_w, order_l, rotated in shelf:
+            for order_w, order_l, rotated in level:
                 color = 'lightblue' if not rotated else 'lightgreen'
-                order_rect = patches.Rectangle((x_position, y_position), order_w, order_l, linewidth=1, edgecolor='blue', facecolor=color, alpha=0.7)
-                ax.add_patch(order_rect)
-                ax.text(x_position + order_w/2, y_position + order_l/2, f"{order_w}x{order_l}" + (" R" if rotated else ""), ha='center', va='center', fontsize=8)
+                rect = patches.Rectangle((x_position, y_position), order_w, order_l, linewidth=1, edgecolor='blue', facecolor=color, alpha=0.7)
+                ax.add_patch(rect)
+                ax.text(x_position + order_w/2, y_position + order_l/2,
+                        f"{order_w}x{order_l}" + (" R" if rotated else ""),
+                        ha='center', va='center', fontsize=8)
                 x_position += order_w
-        
             y_position += shelf_height
 
         ax.set_xlim(0, sheet_width)
@@ -150,145 +151,39 @@ def plot_placements_shelf(sheets, sheet_width, sheet_length, algorithm_name):
         ax.set_title(f"Sheet {sheet_idx+1} ({algorithm_name})")
         ax.set_aspect('equal')
 
-    plt.suptitle(f"Order Placements for {algorithm_name}")
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    return fig
+    plt.tight_layout()
+    return fig  # คืนค่า figure กลับให้ Streamlit
 
-
-# ----------------------------
-# สร้างตารางสรุปรายละเอียด per sheet สำหรับ Guillotine
-# ----------------------------
-def get_sheet_summary_guillotine(placements, sheets, sheet_width, sheet_length, algorithm_name):
-    sheet_groups = defaultdict(list)
-    for placement in placements:
-        s, order, x, y, used_w, used_l, rotated = placement
-        sheet_groups[s].append((used_w, used_l, rotated))
-    rows = []
-    for s in range(len(sheets)):
-        shelf_placements = sheet_groups.get(s, [])
-        orders_details = []
-        for used_w, used_l, rotated in shelf_placements:
-            detail = f"{used_w}x{used_l}"
-            if rotated:
-                detail += " (R)"
-            orders_details.append(detail)
-        orders_str = ", ".join(orders_details)
-        count_orders = len(shelf_placements)
-        free_rects = sheets[s]
-        waste_area = sum(rw * rh for (_, _, rw, rh) in free_rects)
-        waste_dims = ", ".join([f"{rw:.1f}x{rh:.1f}" for (_, _, rw, rh) in free_rects])
-        rows.append({
-            "Sheet": s+1,
-            "Orders": orders_str,
-            "Orders Count": count_orders,
-            "Used Width": "N/A",
-            "Waste (Area)": waste_area,
-            "Waste (Dim)": waste_dims,
-            "Algorithm": algorithm_name
-        })
-    total_waste = sum(row["Waste (Area)"] for row in rows)
-    rows.append({
-        "Sheet": "Total",
-        "Orders": "",
-        "Orders Count": "",
-        "Used Width": "",
-        "Waste (Area)": total_waste,
-        "Waste (Dim)": "",
-        "Algorithm": algorithm_name
-    })
-    return pd.DataFrame(rows)
-
-# ----------------------------
-# ฟังก์ชัน Plot shelf 2 มิติ (สำหรับ FFD/BFD)
-# ----------------------------
-def plot_placements_shelf(sheets, sheet_width, sheet_length, algorithm_name):
+def plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, algorithm_name):
     num_sheets = len(sheets)
     fig, axs = plt.subplots(1, num_sheets, figsize=(6*num_sheets, 8))
 
     if num_sheets == 1:
         axs = [axs]
 
-    for sheet_idx, shelves in enumerate(sheets):
-        ax = axs[sheet_idx]
-        y_position = 0
-        sheet_rect = patches.Rectangle((0, 0), sheet_width, sheet_length, linewidth=2, edgecolor='black', facecolor='none')
-        ax.add_patch(sheet_rect)
-
-        for shelf in shelves:
-            if not shelf:
-                continue  # ข้ามถ้า shelf ว่าง
-
-            shelf_height = max(order[1] for order in shelf if isinstance(order, tuple))
-            x_position = 0
-
-            for item in shelf:
-                if isinstance(item, tuple) and len(item) == 3:
-                    order_w, order_l, rotated = item
-                    color = 'lightblue' if not rotated else 'lightgreen'
-                    order_rect = patches.Rectangle((x_position, y_position), order_w, order_l,
-                                                   linewidth=1, edgecolor='blue', facecolor=color, alpha=0.7)
-                    ax.add_patch(order_rect)
-                    ax.text(x_position + order_w/2, y_position + order_l/2, 
-                            f"{order_w}x{order_l}" + (" R" if rotated else ""),
-                            ha='center', va='center', fontsize=8)
-                    x_position += order_w
-                else:
-                    print("Invalid item in shelf:", item)
-
-            y_position += shelf_height
-
-        ax.set_xlim(0, sheet_width)
-        ax.set_ylim(0, sheet_length)
-        ax.set_title(f"Sheet {sheet_idx+1} ({algorithm_name})")
-        ax.set_aspect('equal')
-
-    plt.suptitle(f"Order Placements for {algorithm_name}")
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    return fig  # คืนค่า figure กลับไปใช้ใน Streamlit
-    for shelf in shelves:
-    if not shelf:  # เช็ค shelf ที่ไม่มีออเดอร์
-        continue
-    shelf_height = max(order[1] for order in shelf)
-    x_position = 0
-
-    for order_w, order_l, rotated in shelf:
-        color = 'lightblue' if not rotated else 'lightgreen'
-        order_rect = patches.Rectangle((x_position, y_position), order_w, order_l, linewidth=1, edgecolor='blue', facecolor=color, alpha=0.7)
-        ax.add_patch(order_rect)
-        ax.text(x_position + order_w/2, y_position + order_l/2, f"{order_w}x{order_l}" + (" R" if rotated else ""), ha='center', va='center', fontsize=8)
-        x_position += order_w
-
-    y_position += shelf_height
-
-
-# ----------------------------
-# ฟังก์ชัน Plot สำหรับ Guillotine
-# ----------------------------
-def plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, algorithm_name):
     sheet_groups = defaultdict(list)
     for placement in placements:
-        s, order, x, y, used_w, used_l, rotated = placement
+        s, _, x, y, used_w, used_l, rotated = placement
         sheet_groups[s].append((x, y, used_w, used_l, rotated))
-    num_sheets = len(sheets)
-    fig, axs = plt.subplots(1, num_sheets, figsize=(6*num_sheets, 6))
-    if num_sheets == 1:
-        axs = [axs]
+
     for s in range(num_sheets):
         ax = axs[s]
-        sheet_rect = patches.Rectangle((0, 0), sheet_width, sheet_length, linewidth=2, edgecolor='black', facecolor='none')
-        ax.add_patch(sheet_rect)
+        ax.add_patch(patches.Rectangle((0,0), sheet_width, sheet_length, linewidth=2, edgecolor='black', facecolor='none'))
+
         for (x, y, used_w, used_l, rotated) in sheet_groups[s]:
             color = 'lightcoral' if not rotated else 'lightyellow'
-            rect = patches.Rectangle((x, y), used_w, used_l, linewidth=1, edgecolor='red', facecolor=color, alpha=0.7)
-            ax.add_patch(rect)
-            ax.text(x + used_w/2, y + used_l/2, f"{used_w}x{used_l}" + (" R" if rotated else ""), ha='center', va='center', fontsize=8)
+            ax.add_patch(patches.Rectangle((x,y), used_w, used_l, linewidth=1, edgecolor='red', facecolor=color, alpha=0.7))
+            ax.text(x + used_w/2, y + used_l/2,
+                    f"{used_w}x{used_l}" + (" R" if rotated else ""),
+                    ha='center', va='center', fontsize=8)
+
         ax.set_xlim(0, sheet_width)
         ax.set_ylim(0, sheet_length)
         ax.set_title(f"Sheet {s+1} ({algorithm_name})")
         ax.set_aspect('equal')
-    plt.suptitle(f"Order Placements for {algorithm_name}")
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.show()
+
+    plt.tight_layout()
+    return fig
 
 # ----------------------------
 # ฟังก์ชันหลัก
