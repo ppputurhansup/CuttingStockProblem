@@ -14,7 +14,7 @@ def first_fit_decreasing_rotated(orders, sheet_width):
         w, l = order
         placed = False
         for shelf in shelves:
-            remaining = sheet_width - sum((item[0] for item in shelf))
+            remaining = sheet_width - sum(item[0] for item in shelf)
             feasible_orientations = []
             if w <= remaining:
                 feasible_orientations.append((w, l, False))
