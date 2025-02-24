@@ -9,8 +9,10 @@ from algorithms import (
     plot_placements_guillotine
 )
 import pandas as pd
+from collections import defaultdict
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+import matplotlib.patches as patches  # เพิ่มบรรทัดนี้
+
 
 # ตามด้วยโค้ด Streamlit ของคุณ
 
