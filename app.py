@@ -12,7 +12,13 @@ import pandas as pd
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches  # เพิ่มบรรทัดนี้
+st.write("Debug shelves_ffd:", shelves_ffd)
 
+if selected_algo == "FFD with Rotation":
+    fig = plt.figure()
+    st.write("Debug shelves_ffd:", shelves_ffd)  # เพิ่มตรงนี้ก่อนเลย
+    plot_placements_shelf(shelves_ffd, sheet_width, sheet_length, selected_algo)
+    st.pyplot(fig)
 
 # ตามด้วยโค้ด Streamlit ของคุณ
 
