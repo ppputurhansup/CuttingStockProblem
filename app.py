@@ -4,7 +4,7 @@ from algorithms import (
     first_fit_decreasing_rotated,
     best_fit_decreasing_rotated,
     guillotine_cutting_rotated,
-    plot_placements_shelf_plotly,  # <-- เปลี่ยนมาเรียกตัวนี้แทน
+    plot_placements_shelf_plotly,
     plot_placements_guillotine
 )
 
@@ -67,4 +67,3 @@ if orders and st.button("🚀 คำนวณ"):
     elif selected_algo == "Guillotine Rotated":
         fig = plot_placements_guillotine(placements_guillotine, sheets_guillotine, sheet_width, sheet_length, selected_algo)
         st.pyplot(fig)
-
