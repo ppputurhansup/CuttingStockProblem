@@ -1,11 +1,10 @@
-# app.py
 import streamlit as st
 import pandas as pd
 from algorithms import (
     first_fit_decreasing_rotated,
     best_fit_decreasing_rotated,
     guillotine_cutting_rotated,
-    plot_placements_shelf,
+    plot_placements_shelf_plotly,  # <-- เปลี่ยนมาเรียกตัวนี้แทน
     plot_placements_guillotine
 )
 
@@ -52,15 +51,31 @@ if orders and st.button("🚀 คำนวณ"):
     st.subheader("📌 KPI")
     st.dataframe(kpi)
 
+    if orders and st.button("🚀 คำนวณ"):
+    shelves_ffd = first_fit_decreasing_rotated(orders, sheet_width)
+    shelves_bfd = best_fit_decreasing_rotated(orders, sheet_width)
+    placements_guillotine, sheets_guillotine = guillotine_cutting_rotated(orders, sheet_width, sheet_length)
+
+    kpi = pd.DataFrame({
+        "Algorithm": ["FFD Rotated", "BFD Rotated", "Guillotine Rotated"],
+        "Sheets Used": [len(shelves_ffd), len(shelves_bfd), len(sheets_guillotine)]
+    })
+    st.subheader("📌 KPI")
+    st.dataframe(kpi)
+
     selected_algo = st.selectbox("🔍 เลือกอัลกอริทึมดู Visualization",
                                  ["FFD Rotated", "BFD Rotated", "Guillotine Rotated"])
 
     if selected_algo == "FFD Rotated":
-        fig = plot_placements_shelf(shelves_ffd, sheet_width, sheet_length, selected_algo)
-        st.pyplot(fig)
+        figs = plot_placements_shelf_plotly(shelves_ffd, sheet_width, sheet_length, selected_algo)
+        for fig in figs:
+            st.plotly_chart(fig)
+
     elif selected_algo == "BFD Rotated":
-        fig = plot_placements_shelf(shelves_bfd, sheet_width, sheet_length, selected_algo)
-        st.pyplot(fig)
+        figs = plot_placements_shelf_plotly(shelves_bfd, sheet_width, sheet_length, selected_algo)
+        for fig in figs:
+            st.plotly_chart(fig)
+
     elif selected_algo == "Guillotine Rotated":
         fig = plot_placements_guillotine(placements_guillotine, sheets_guillotine, sheet_width, sheet_length, selected_algo)
         st.pyplot(fig)
