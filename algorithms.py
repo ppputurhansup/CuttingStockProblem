@@ -22,7 +22,7 @@ def first_fit_decreasing_rotated(orders, sheet_width):
                 feasible_orientations.append((l, w, True))
             if feasible_orientations:
                 chosen = min(feasible_orientations, key=lambda x: x[0])
-                shelf.append(chosen)
+                shelf.append([chosen])
                 placed = True
                 break
         if not placed:
