@@ -211,9 +211,7 @@ def get_sheet_summary_guillotine(placements, sheets, sheet_width, sheet_length, 
 def plot_placements_shelf(sheets, sheet_width, sheet_length, algorithm_name):
     num_sheets = len(sheets)
     fig, axs = plt.subplots(1, num_sheets, figsize=(6*num_sheets, 8))
-    print(sheets,type(sheets))
-    sheets = int(sheets) 
-    print(sheets,type(sheets))
+
     if num_sheets == 1:
         axs = [axs]
 
