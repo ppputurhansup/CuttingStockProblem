@@ -131,8 +131,8 @@ def plot_placements_shelf(sheets, sheet_width, sheet_length, algorithm_name):
         ax.add_patch(sheet_rect)
 
         for shelf in shelves:
-    if not shelf:  # เช็ค shelf ที่ไม่มีออเดอร์
-        continue   # ✅ เพิ่ม continue เพื่อข้าม shelf ว่าง
+            if not shelf:  # เช็ค shelf ที่ไม่มีออเดอร์
+                continue   # ✅ เพิ่ม continue เพื่อข้าม shelf ว่าง
     shelf_height = max(order[1] for order in shelf)
     x_position = 0
 
