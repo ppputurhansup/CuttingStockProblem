@@ -22,7 +22,7 @@ def first_fit_decreasing_rotated(orders, sheet_width):
                 feasible_orientations.append((l, w, True))
             if feasible_orientations:
                 chosen = min(feasible_orientations, key=lambda x: x[0])
-                shelf.append([chosen])
+                shelf.append(chosen)
                 placed = True
                 break
         if not placed:
@@ -33,7 +33,7 @@ def first_fit_decreasing_rotated(orders, sheet_width):
                 feasible_orientations.append((l, w, True))
             if feasible_orientations:
                 chosen = min(feasible_orientations, key=lambda x: x[0])
-                shelves.append([chosen])  # แก้ตรงนี้แล้ว
+                shelf.append([chosen])
             else:
                 print("❌ Order", order, "ไม่สามารถวางบนแผ่นใหม่ได้")
     return shelves
