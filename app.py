@@ -67,3 +67,4 @@ if orders and st.button("🚀 คำนวณ"):
     elif selected_algo == "Guillotine Rotated":
         fig = plot_placements_guillotine(placements_guillotine, sheets_guillotine, sheet_width, sheet_length, selected_algo)
         st.pyplot(fig)
+
