@@ -93,72 +93,74 @@ if st.session_state.calculated:
 
 # --- แสดงผลลัพธ์ (จะไม่หายเมื่อเลือก visualization ใหม่) ---
 if st.session_state.calculated:
-    st.subheader("📌 KPI")
+    st.subheader("📌 KPI Summary")
+    st.dataframe(st.session_state.kpi_df)
+
     selected_algo = st.selectbox("🔍 เลือกอัลกอริทึมดู Visualization",
-                             ["FFD Rotated", "BFD Rotated", "Guillotine Rotated"])
+                                 ["FFD Rotated", "BFD Rotated", "Guillotine Rotated"])
 
-if selected_algo:
-    st.subheader(f"📑 รายละเอียดการวาง (per sheet) ของ {selected_algo}")
-    
-    if selected_algo != "Guillotine Rotated":
-        shelves = st.session_state.results[selected_algo]
-        detail_rows = []
-        for idx, shelf in enumerate(shelves, 1):
-            orders_str = ", ".join([f"{w}x{l}{' (R)' if r else ''}" for w, l, r in shelf])
-            waste_area = sheet_width * sheet_length - sum(w*l for w, l, _ in shelf)
+    if selected_algo:
+        st.subheader(f"📑 รายละเอียดการวาง (per sheet) ของ {selected_algo}")
+        
+        if selected_algo != "Guillotine Rotated":
+            shelves = st.session_state.results[selected_algo]
+            detail_rows = []
+            for idx, shelf in enumerate(shelves, 1):
+                orders_str = ", ".join([f"{w}x{l}{' (R)' if r else ''}" for w, l, r in shelf])
+                waste_area = sheet_width * sheet_length - sum(w*l for w, l, _ in shelf)
+                detail_rows.append({
+                    "Sheet": idx,
+                    "Orders": orders_str,
+                    "Orders Count": len(shelf),
+                    "Used Width": "N/A",
+                    "Waste (Area)": round(waste_area, 2),
+                    "Waste (Dim)": "N/A"
+                })
+            total_waste = sum(row["Waste (Area)"] for row in detail_rows)
             detail_rows.append({
-                "Sheet": idx,
-                "Orders": orders_str,
-                "Orders Count": len(shelf),
-                "Used Width": "N/A",
-                "Waste (Area)": round(waste_area, 2),
-                "Waste (Dim)": "N/A"
-            })
-        total_waste = sum(row["Waste (Area)"] for row in detail_rows)
-        detail_rows.append({
-            "Sheet": "Total",
-            "Orders": "",
-            "Orders Count": "",
-            "Used Width": "",
-            "Waste (Area)": round(total_waste, 2),
-            "Waste (Dim)": ""
-        })
-
-        details_df = pd.DataFrame(detail_rows)
-        st.dataframe(details_df)
-
-        figs = plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, selected_algo)
-        for fig in figs:
-            st.plotly_chart(fig)
-
-    else:  # Guillotine
-        placements, sheets = st.session_state.results[selected_algo]
-        detail_rows = []
-        for idx, sheet in enumerate(sheets, 1):
-            sheet_orders = [f"{p[4]}x{p[5]}{' (R)' if p[6] else ''}" for p in placements if p[0] == idx-1]
-            waste_area = sum(w*h for _,_,w,h in sheet)
-            waste_dims = ", ".join([f"{w:.1f}x{h:.1f}" for _,_,w,h in sheet])
-            detail_rows.append({
-                "Sheet": idx,
-                "Orders": ", ".join(sheet_orders),
-                "Orders Count": len(sheet_orders),
-                "Used Width": "N/A",
-                "Waste (Area)": round(waste_area, 2),
-                "Waste (Dim)": waste_dims
+                "Sheet": "Total",
+                "Orders": "",
+                "Orders Count": "",
+                "Used Width": "",
+                "Waste (Area)": round(total_waste, 2),
+                "Waste (Dim)": ""
             })
 
-        total_waste = sum(row["Waste (Area)"] for row in detail_rows)
-        detail_rows.append({
-            "Sheet": "Total",
-            "Orders": "",
-            "Orders Count": "",
-            "Used Width": "",
-            "Waste (Area)": round(total_waste, 2),
-            "Waste (Dim)": ""
-        })
+            details_df = pd.DataFrame(detail_rows)
+            st.dataframe(details_df)
 
-        details_df = pd.DataFrame(detail_rows)
-        st.dataframe(details_df)
+            figs = plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, selected_algo)
+            for fig in figs:
+                st.plotly_chart(fig)
 
-        fig = plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, selected_algo)
-        st.pyplot(fig)
+        else:  # Guillotine
+            placements, sheets = st.session_state.results[selected_algo]
+            detail_rows = []
+            for idx, sheet in enumerate(sheets, 1):
+                sheet_orders = [f"{p[4]}x{p[5]}{' (R)' if p[6] else ''}" for p in placements if p[0] == idx-1]
+                waste_area = sum(w*h for _,_,w,h in sheet)
+                waste_dims = ", ".join([f"{w:.1f}x{h:.1f}" for _,_,w,h in sheet])
+                detail_rows.append({
+                    "Sheet": idx,
+                    "Orders": ", ".join(sheet_orders),
+                    "Orders Count": len(sheet_orders),
+                    "Used Width": "N/A",
+                    "Waste (Area)": round(waste_area, 2),
+                    "Waste (Dim)": waste_dims
+                })
+
+            total_waste = sum(row["Waste (Area)"] for row in detail_rows)
+            detail_rows.append({
+                "Sheet": "Total",
+                "Orders": "",
+                "Orders Count": "",
+                "Used Width": "",
+                "Waste (Area)": round(total_waste, 2),
+                "Waste (Dim)": ""
+            })
+
+            details_df = pd.DataFrame(detail_rows)
+            st.dataframe(details_df)
+
+            fig = plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, selected_algo)
+            st.pyplot(fig)
