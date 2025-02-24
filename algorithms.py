@@ -22,7 +22,7 @@ def first_fit_decreasing_rotated(orders, sheet_width):
                 feasible_orientations.append((l, w, True))
             if feasible_orientations:
                 chosen = min(feasible_orientations, key=lambda x: x[0])
-                shelf.append((chosen[0], chosen[1], chosen[2]))  # ✅แก้ตรงนี้
+                shelf.append(chosen)  # ✅ จุดสำคัญคือ shelf ต้อง append tuple เท่านั้น
                 placed = True
                 break
         if not placed:
@@ -33,7 +33,7 @@ def first_fit_decreasing_rotated(orders, sheet_width):
                 feasible_orientations.append((l, w, True))
             if feasible_orientations:
                 chosen = min(feasible_orientations, key=lambda x: x[0])
-                shelves.append([(chosen[0], chosen[1], chosen[2])])  # ✅แก้ตรงนี้
+                shelves.append([chosen])  # ✅ shelf ใหม่ต้องเป็น [chosen] เท่านั้น
             else:
                 print("❌ Order", order, "ไม่สามารถวางบนแผ่นใหม่ได้")
     return shelves
@@ -57,7 +57,7 @@ def best_fit_decreasing_rotated(orders, sheet_width):
                         best_shelf_index = shelf_index
                         best_orientation = orientation
         if best_shelf_index is not None:
-            shelves[best_shelf_index].append((best_orientation[0], best_orientation[1], best_orientation[2]))  # ✅แก้ตรงนี้
+            shelves[best_shelf_index].append(best_orientation)  # ✅ แบบนี้เท่านั้น
         else:
             feasible_orientations = []
             if w <= sheet_width:
@@ -66,10 +66,11 @@ def best_fit_decreasing_rotated(orders, sheet_width):
                 feasible_orientations.append((l, w, True))
             if feasible_orientations:
                 chosen = min(feasible_orientations, key=lambda x: x[0])
-                shelves.append([(chosen[0], chosen[1], chosen[2])])  # ✅แก้ตรงนี้
+                shelves.append([chosen])  # ✅ แบบนี้เท่านั้น
             else:
                 print("❌ Order", order, "ไม่สามารถวางบนแผ่นใหม่ได้")
     return shelves
+
 
 # ----------------------------
 # 3. Guillotine Cutting with Rotation
