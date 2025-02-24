@@ -3,24 +3,11 @@ from algorithms import (
     first_fit_decreasing_rotated,
     best_fit_decreasing_rotated,
     guillotine_cutting_rotated,
-    get_shelf_summary_ffd,
-    get_sheet_summary_guillotine,
     plot_placements_shelf,
     plot_placements_guillotine
 )
 import pandas as pd
-from collections import defaultdict
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches  # เพิ่มบรรทัดนี้
-st.write("Debug shelves_ffd:", shelves_ffd)
-
-if selected_algo == "FFD with Rotation":
-    fig = plt.figure()
-    st.write("Debug shelves_ffd:", shelves_ffd)  # เพิ่มตรงนี้ก่อนเลย
-    plot_placements_shelf(shelves_ffd, sheet_width, sheet_length, selected_algo)
-    st.pyplot(fig)
-
-# ตามด้วยโค้ด Streamlit ของคุณ
 
 st.title("📦 Cutting Stock Problem with Rotation")
 
@@ -55,42 +42,36 @@ elif input_method == "อัปโหลดไฟล์ CSV":
             st.error("ไฟล์ CSV ต้องมีคอลัมน์ 'Width' และ 'Length'")
 
 # --- เริ่มคำนวณเมื่อมีข้อมูลครบ ---
-if orders:
-    if st.button("🚀 เริ่มคำนวณ"):
-        total_used_area = sum(w * l for w, l in orders)
-        sheet_area = sheet_width * sheet_length
+if orders and st.button("🚀 เริ่มคำนวณ"):
+    total_used_area = sum(w * l for w, l in orders)
+    sheet_area = sheet_width * sheet_length
 
-        # --- เรียกฟังก์ชันอัลกอริทึมที่มีอยู่ (FFD, BFD, Guillotine) ---
-        with st.spinner("กำลังคำนวณ..."):
-            shelves_ffd = first_fit_decreasing_rotated(orders, sheet_width)
-            shelves_bfd = best_fit_decreasing_rotated(orders, sheet_width)
-            placements_guillotine, sheets_guillotine = guillotine_cutting_rotated(orders, sheet_width, sheet_length)
+    # เรียกใช้อัลกอริทึม
+    shelves_ffd = first_fit_decreasing_rotated(orders, sheet_width)
+    shelves_bfd = best_fit_decreasing_rotated(orders, sheet_width)
+    placements_guillotine, sheets_guillotine = guillotine_cutting_rotated(orders, sheet_width, sheet_length)
 
-        # --- สร้าง DataFrame KPI ---
-        kpi_data = [
-            {"Algorithm": "FFD with Rotation", "Sheets Used": len(shelves_ffd)},
-            {"Algorithm": "BFD with Rotation", "Sheets Used": len(shelves_bfd)},
-            {"Algorithm": "Guillotine with Rotation", "Sheets Used": len(sheets_guillotine)},
-        ]
-        df_kpi = pd.DataFrame(kpi_data)
-        st.subheader("📌 KPI Summary")
-        st.dataframe(df_kpi)
+    # แสดง KPI
+    df_kpi = pd.DataFrame({
+        "Algorithm": ["FFD with Rotation", "BFD with Rotation", "Guillotine with Rotation"],
+        "Sheets Used": [len(shelves_ffd), len(shelves_bfd), len(sheets_guillotine)]
+    })
 
-        # --- แสดง Visualization (เลือกอัลกอริทึม) ---
-        selected_algo = st.selectbox("🔍 เลือกอัลกอริทึมที่ต้องการแสดง Visualization",
-                                     ["FFD with Rotation", "BFD with Rotation", "Guillotine with Rotation"])
+    st.subheader("📌 KPI Summary")
+    st.dataframe(df_kpi)
 
-        if selected_algo == "FFD with Rotation":
-            fig = plt.figure()
-            plot_placements_shelf(shelves_ffd, sheet_width, sheet_length, selected_algo)
-            st.pyplot(fig)
+    # เลือกแสดง Visualization
+    selected_algo = st.selectbox("🔍 เลือกอัลกอริทึมที่ต้องการแสดง Visualization",
+                                 ["FFD with Rotation", "BFD with Rotation", "Guillotine with Rotation"])
 
-        elif selected_algo == "BFD with Rotation":
-            fig = plt.figure()
-            plot_placements_shelf(shelves_bfd, sheet_width, sheet_length, selected_algo)
-            st.pyplot(fig)
+    if selected_algo == "FFD with Rotation":
+        fig = plot_placements_shelf(shelves_ffd, sheet_width, sheet_length, selected_algo)
+        st.pyplot(fig)
 
-        elif selected_algo == "Guillotine with Rotation":
-            fig = plt.figure()
-            plot_placements_guillotine(placements_guillotine, sheets_guillotine, sheet_width, sheet_length, selected_algo)
-            st.pyplot(fig)
+    elif selected_algo == "BFD with Rotation":
+        fig = plot_placements_shelf(shelves_bfd, sheet_width, sheet_length, selected_algo)
+        st.pyplot(fig)
+
+    elif selected_algo == "Guillotine with Rotation":
+        fig = plot_placements_guillotine(placements_guillotine, sheets_guillotine, sheet_width, sheet_length, selected_algo)
+        st.pyplot(fig)
