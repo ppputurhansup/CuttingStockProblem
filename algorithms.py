@@ -171,16 +171,15 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
 
 
 def plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, algorithm_name):
-    num_sheets = len(sheets)
-    fig, axs = plt.subplots(1, num_sheets, figsize=(6*num_sheets, 8))
-
-    if num_sheets == 1:
-        axs = [axs]
-
     sheet_groups = defaultdict(list)
     for placement in placements:
-        s, _, x, y, used_w, used_l, rotated = placement
+        s, order, x, y, used_w, used_l, rotated = placement
         sheet_groups[s].append((x, y, used_w, used_l, rotated))
+
+    num_sheets = len(sheets)
+    fig, axs = plt.subplots(1, num_sheets, figsize=(6*num_sheets, 8))
+    if num_sheets == 1:
+        axs = [axs]
 
     for s in range(num_sheets):
         ax = axs[s]
@@ -189,9 +188,7 @@ def plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, al
         for (x, y, used_w, used_l, rotated) in sheet_groups[s]:
             color = 'lightcoral' if not rotated else 'lightyellow'
             ax.add_patch(patches.Rectangle((x,y), used_w, used_l, linewidth=1, edgecolor='red', facecolor=color, alpha=0.7))
-            ax.text(x + used_w/2, y + used_l/2,
-                    f"{used_w}x{used_l}" + (" R" if rotated else ""),
-                    ha='center', va='center', fontsize=8)
+            ax.text(x + used_w/2, y + used_l/2, f"{used_w}x{used_l}" + (" R" if rotated else ""), ha='center', va='center', fontsize=8)
 
         ax.set_xlim(0, sheet_width)
         ax.set_ylim(0, sheet_length)
@@ -199,7 +196,8 @@ def plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, al
         ax.set_aspect('equal')
 
     plt.tight_layout()
-    return fig
+
+    return fig  
 
 # ----------------------------
 # ฟังก์ชันหลัก
