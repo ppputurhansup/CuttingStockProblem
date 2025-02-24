@@ -222,10 +222,10 @@ def plot_placements_shelf(sheets, sheet_width, sheet_length, algorithm_name):
         ax.add_patch(sheet_rect)
 
         for shelf in shelves:
-            shelf_height = max(item[1] for item in shelf)
+            shelf_height = max(order_l for (_, order_l, _) in shelf)  # แก้ตรงนี้
             x_position = 0
 
-            for order_w, order_l, rotated in shelf:
+            for (order_w, order_l, rotated) in shelf:  # แก้ตรงนี้
                 color = 'lightblue' if not rotated else 'lightgreen'
                 order_rect = patches.Rectangle((x_position, y_position), order_w, order_l, linewidth=1, edgecolor='blue', facecolor=color, alpha=0.7)
                 ax.add_patch(order_rect)
@@ -241,7 +241,8 @@ def plot_placements_shelf(sheets, sheet_width, sheet_length, algorithm_name):
 
     plt.suptitle(f"Order Placements for {algorithm_name}")
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.show()
+    return fig  # คืนค่า figure กลับไปให้ streamlit
+
 
 # ----------------------------
 # ฟังก์ชัน Plot สำหรับ Guillotine
