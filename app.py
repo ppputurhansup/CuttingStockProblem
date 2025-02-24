@@ -35,8 +35,8 @@ elif input_method == "อัปโหลดไฟล์ CSV":
     uploaded_file = st.file_uploader("อัปโหลดไฟล์ CSV (ต้องมีคอลัมน์ 'Width' และ 'Length')", type="csv")
     if uploaded_file:
         df_orders = pd.read_csv(uploaded_file)
-        for i in range(df_orders["Width"]):df_orders["Width"][i] = int(df_orders["Width"][i])
-        for j in range(df_orders["Length"]):df_orders["Length"][j] = int(df_orders["Length"][j])
+        for i in range(len(df_orders["Width"])):df_orders["Width"][i] = int(df_orders["Width"][i])
+        for j in range(len(df_orders["Length"])):df_orders["Length"][j] = int(df_orders["Length"][j])
         if "Width" in df_orders.columns and "Length" in df_orders.columns:
             orders = list(zip(df_orders["Width"], df_orders["Length"]))
             st.dataframe(df_orders)
