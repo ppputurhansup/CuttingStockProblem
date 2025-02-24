@@ -10,6 +10,7 @@ from algorithms import (
 )
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 # ตามด้วยโค้ด Streamlit ของคุณ
 
