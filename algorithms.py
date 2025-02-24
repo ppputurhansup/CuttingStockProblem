@@ -133,18 +133,17 @@ def plot_placements_shelf(shelves, sheet_width, sheet_length, algorithm_name):
         ax.add_patch(sheet_rect)
 
         y_position = 0
-        for level in shelf:
-            shelf_height = max(item[1] for item in level)
-            x_position = 0
-            for order_w, order_l, rotated in level:
-                color = 'lightblue' if not rotated else 'lightgreen'
-                rect = patches.Rectangle((x_position, y_position), order_w, order_l, linewidth=1, edgecolor='blue', facecolor=color, alpha=0.7)
-                ax.add_patch(rect)
-                ax.text(x_position + order_w/2, y_position + order_l/2,
-                        f"{order_w}x{order_l}" + (" R" if rotated else ""),
-                        ha='center', va='center', fontsize=8)
-                x_position += order_w
-            y_position += shelf_height
+        shelf_height = max(item[1] for item in shelf)  # แก้ตรงนี้ shelf โดยตรง
+        x_position = 0
+        for order_w, order_l, rotated in shelf:
+            color = 'lightblue' if not rotated else 'lightgreen'
+            rect = patches.Rectangle((x_position, y_position), order_w, order_l, linewidth=1, edgecolor='blue', facecolor=color, alpha=0.7)
+            ax.add_patch(rect)
+            ax.text(x_position + order_w/2, y_position + order_l/2,
+                    f"{order_w}x{order_l}" + (" R" if rotated else ""),
+                    ha='center', va='center', fontsize=8)
+            x_position += order_w
+        y_position += shelf_height
 
         ax.set_xlim(0, sheet_width)
         ax.set_ylim(0, sheet_length)
@@ -152,7 +151,8 @@ def plot_placements_shelf(shelves, sheet_width, sheet_length, algorithm_name):
         ax.set_aspect('equal')
 
     plt.tight_layout()
-    return fig  # คืนค่า figure กลับให้ Streamlit
+    return fig
+
 
 def plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, algorithm_name):
     num_sheets = len(sheets)
