@@ -1,5 +1,7 @@
 import pandas as pd
 from collections import defaultdict
+import matplotlib.pyplot as plt
+
 # ----------------------------
 # 1. First Fit Decreasing (FFD) with Rotation (fixed)
 # ----------------------------
