@@ -5,91 +5,32 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from collections import defaultdict
 
-# First Fit Decreasing (FFD) with Rotation
-def first_fit_decreasing_rotated(orders, sheet_width):
-    orders_sorted = sorted(orders, key=lambda x: max(x[0], x[1]), reverse=True)
-    shelves = []
-    for order in orders_sorted:
-        w, l = order
-        placed = False
-        for shelf in shelves:
-            remaining = sheet_width - sum(item[0] for item in shelf)
-            feasible_orientations = []
-            if w <= remaining:
-                feasible_orientations.append((w, l, False))
-            if l <= remaining:
-                feasible_orientations.append((l, w, True))
-            if feasible_orientations:
-                chosen = min(feasible_orientations, key=lambda x: x[0])
-                shelf.append(chosen)
-                placed = True
-                break
-        if not placed:
-            feasible_orientations = []
-            if w <= sheet_width:
-                feasible_orientations.append((w, l, False))
-            if l <= sheet_width:
-                feasible_orientations.append((l, w, True))
-            if feasible_orientations:
-                chosen = min(feasible_orientations, key=lambda x: x[0])
-                shelves.append([chosen])
-    return shelves
+# (ใส่ฟังก์ชันทั้งหมดที่คุณมีอยู่เดิมไว้ตรงนี้)
 
-# Best Fit Decreasing (BFD) with Rotation
-def best_fit_decreasing_rotated(orders, sheet_width):
-    orders_sorted = sorted(orders, key=lambda x: max(x[0], x[1]), reverse=True)
-    shelves = []
-    for order in orders_sorted:
-        w, l = order
-        best_shelf_index = None
-        best_orientation = None
-        best_leftover = float('inf')
-        for shelf_index, shelf in enumerate(shelves):
-            remaining = sheet_width - sum(item[0] for item in shelf)
-            for orientation in [(w, l, False), (l, w, True)]:
-                used_w = orientation[0]
-                if used_w <= remaining:
-                    leftover = remaining - used_w
-                    if leftover < best_leftover:
-                        best_leftover = leftover
-                        best_shelf_index = shelf_index
-                        best_orientation = orientation
-        if best_shelf_index is not None:
-            shelves[best_shelf_index].append(best_orientation)
-        else:
-            shelves.append([(w, l, False)])
-    return shelves
-
-# Guillotine Cutting with Rotation
-def guillotine_cutting_rotated(orders, sheet_width, sheet_length):
-    sheets = [[(0, 0, sheet_width, sheet_length)]]
-    placements = []
-    orders_sorted = sorted(orders, key=lambda x: max(x[0], x[1]), reverse=True)
-    for order in orders_sorted:
-        w, l = order
-        placed = False
-        for s, free_rects in enumerate(sheets):
-            for i, rect in enumerate(free_rects):
-                rx, ry, rw, rh = rect
-                if w <= rw and l <= rh:
-                    placements.append((s, order, rx, ry, w, l, False))
-                    free_rects.pop(i)
-                    free_rects.extend([(rx + w, ry, rw - w, l), (rx, ry + l, rw, rh - l)])
-                    placed = True
-                    break
-                elif l <= rw and w <= rh:
-                    placements.append((s, order, rx, ry, l, w, True))
-                    free_rects.pop(i)
-                    free_rects.extend([(rx + l, ry, rw - l, w), (rx, ry + w, rw, rh - w)])
-                    placed = True
-                    break
-            if placed:
-                break
-        if not placed:
-            sheets.append([(0, 0, sheet_width, sheet_length)])
-            s = len(sheets) - 1
-            placements.append((s, order, 0, 0, w, l, False))
-    return placements, sheets
+# ฟังก์ชัน Plot สำหรับ Guillotine
+def plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, algorithm_name):
+    sheet_groups = defaultdict(list)
+    for placement in placements:
+        s, order, x, y, used_w, used_l, rotated = placement
+        sheet_groups[s].append((x, y, used_w, used_l, rotated))
+    num_sheets = len(sheets)
+    fig, axs = plt.subplots(1, num_sheets, figsize=(6*num_sheets, 6))
+    if num_sheets == 1:
+        axs = [axs]
+    for s in range(num_sheets):
+        ax = axs[s]
+        sheet_rect = patches.Rectangle((0, 0), sheet_width, sheet_length, linewidth=2, edgecolor='black', facecolor='none')
+        ax.add_patch(sheet_rect)
+        for (x, y, used_w, used_l, rotated) in sheet_groups[s]:
+            color = 'lightcoral' if not rotated else 'lightyellow'
+            rect = patches.Rectangle((x, y), used_w, used_l, linewidth=1, edgecolor='red', facecolor=color, alpha=0.7)
+            ax.add_patch(rect)
+            ax.text(x + used_w/2, y + used_l/2, f"{used_w}x{used_l}" + (" R" if rotated else ""), ha='center', va='center', fontsize=8)
+        ax.set_xlim(0, sheet_width)
+        ax.set_ylim(0, sheet_length)
+        ax.set_title(f"Sheet {s+1} ({algorithm_name})")
+        ax.set_aspect('equal')
+    st.pyplot(fig)
 
 # Streamlit UI
 st.title("Cutting Stock Problem Solver")
@@ -113,17 +54,17 @@ if orders:
     start = time.time()
     if algorithm == "FFD with Rotation":
         shelves = first_fit_decreasing_rotated(orders, sheet_width)
-        plot_data = shelves
+        plot_placements_shelf(shelves, sheet_width, sheet_length, algorithm)
     elif algorithm == "BFD with Rotation":
         shelves = best_fit_decreasing_rotated(orders, sheet_width)
-        plot_data = shelves
+        plot_placements_shelf(shelves, sheet_width, sheet_length, algorithm)
     elif algorithm == "Guillotine with Rotation":
         placements, sheets = guillotine_cutting_rotated(orders, sheet_width, sheet_length)
-        plot_data = sheets
+        plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, algorithm)
     processing_time = time.time() - start
 
     st.subheader("📊 ผลลัพธ์การจัดวาง")
     st.write(f"⏳ ใช้เวลาในการประมวลผล: {processing_time:.4f} วินาที")
-    st.write(f"📌 จำนวนแผ่นที่ใช้: {len(plot_data)}")
+    st.write(f"📌 จำนวนแผ่นที่ใช้: {len(shelves) if algorithm != 'Guillotine with Rotation' else len(sheets)}")
 else:
     st.info("โปรดอัปโหลดไฟล์ CSV เพื่อดำเนินการต่อ")
