@@ -133,17 +133,17 @@ def plot_placements_shelf(sheets, sheet_width, sheet_length, algorithm_name):
         for shelf in shelves:
             if not shelf:  # เช็ค shelf ที่ไม่มีออเดอร์
                 continue   # ✅ เพิ่ม continue เพื่อข้าม shelf ว่าง
-    shelf_height = max(order[1] for order in shelf)
-    x_position = 0
+            shelf_height = max(order[1] for order in shelf)
+            x_position = 0
 
-    for order_w, order_l, rotated in shelf:
-        color = 'lightblue' if not rotated else 'lightgreen'
-        order_rect = patches.Rectangle((x_position, y_position), order_w, order_l, linewidth=1, edgecolor='blue', facecolor=color, alpha=0.7)
-        ax.add_patch(order_rect)
-        ax.text(x_position + order_w/2, y_position + order_l/2, f"{order_w}x{order_l}" + (" R" if rotated else ""), ha='center', va='center', fontsize=8)
-        x_position += order_w
-
-    y_position += shelf_height
+            for order_w, order_l, rotated in shelf:
+                color = 'lightblue' if not rotated else 'lightgreen'
+                order_rect = patches.Rectangle((x_position, y_position), order_w, order_l, linewidth=1, edgecolor='blue', facecolor=color, alpha=0.7)
+                ax.add_patch(order_rect)
+                ax.text(x_position + order_w/2, y_position + order_l/2, f"{order_w}x{order_l}" + (" R" if rotated else ""), ha='center', va='center', fontsize=8)
+                x_position += order_w
+        
+            y_position += shelf_height
 
         ax.set_xlim(0, sheet_width)
         ax.set_ylim(0, sheet_length)
