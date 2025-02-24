@@ -86,11 +86,6 @@ if orders and st.button("🚀 คำนวณ"):
     st.session_state.results = results
     st.session_state.calculated = True
 
-if st.session_state.calculated:
-    st.subheader("📌 KPI Summary")
-    st.dataframe(st.session_state.kpi_df)
-
-
 # --- แสดงผลลัพธ์ (จะไม่หายเมื่อเลือก visualization ใหม่) ---
 if st.session_state.calculated:
     st.subheader("📌 KPI Summary")
@@ -105,17 +100,27 @@ if st.session_state.calculated:
         if selected_algo != "Guillotine Rotated":
             shelves = st.session_state.results[selected_algo]
             detail_rows = []
+        
             for idx, shelf in enumerate(shelves, 1):
                 orders_str = ", ".join([f"{w}x{l}{' (R)' if r else ''}" for w, l, r in shelf])
                 waste_area = sheet_width * sheet_length - sum(w*l for w, l, _ in shelf)
+        
+                # คำนวณ Used Width
+                used_width = sum(w for w, _, _ in shelf)
+                remaining_width = sheet_width - used_width
+        
+                # คำนวณ Waste Dimension (เศษที่เหลือ)
+                waste_dims = f"{remaining_width:.1f}x{sheet_length:.1f}" if remaining_width > 0 else "None"
+        
                 detail_rows.append({
                     "Sheet": idx,
                     "Orders": orders_str,
                     "Orders Count": len(shelf),
-                    "Used Width": "N/A",
+                    "Used Width": f"{used_width:.1f} cm",
                     "Waste (Area)": round(waste_area, 2),
-                    "Waste (Dim)": "N/A"
+                    "Waste (Dim)": waste_dims  # ✅ เพิ่ม Waste Dimensions ที่ถูกต้อง
                 })
+        
             total_waste = sum(row["Waste (Area)"] for row in detail_rows)
             detail_rows.append({
                 "Sheet": "Total",
@@ -125,7 +130,7 @@ if st.session_state.calculated:
                 "Waste (Area)": round(total_waste, 2),
                 "Waste (Dim)": ""
             })
-
+        
             details_df = pd.DataFrame(detail_rows)
             st.dataframe(details_df)
 
