@@ -117,50 +117,44 @@ def guillotine_cutting_rotated(orders, sheet_width, sheet_length):
 # ----------------------------
 # สร้างตารางสรุปรายละเอียด per sheet สำหรับ shelf 2 มิติ
 # ----------------------------
-def get_shelf_summary_ffd(sheets, sheet_width, sheet_length, algorithm_name):
-    rows = []
-    total_waste = 0
+def plot_placements_shelf(sheets, sheet_width, sheet_length, algorithm_name):
+    num_sheets = len(sheets)
+    fig, axs = plt.subplots(1, num_sheets, figsize=(6*num_sheets, 8))
 
-    for sheet_idx, sheet in enumerate(sheets, start=1):
-        orders_details = []
-        used_area = 0
-        used_height = 0
+    if num_sheets == 1:
+        axs = [axs]
 
-        for shelf in sheet:
+    for sheet_idx, shelves in enumerate(sheets):
+        ax = axs[sheet_idx]
+        y_position = 0
+        sheet_rect = patches.Rectangle((0, 0), sheet_width, sheet_length, linewidth=2, edgecolor='black', facecolor='none')
+        ax.add_patch(sheet_rect)
+
+        for shelf in shelves:
+            # เพิ่มเงื่อนไขตรวจสอบว่า shelf มีรายการถูกต้อง
+            if not shelf or not all(isinstance(order, tuple) for order in shelf):
+                continue  # ข้าม shelf ที่ไม่มีข้อมูลหรือผิดรูปแบบ
+            
             shelf_height = max(order[1] for order in shelf)
-            shelf_width_used = sum(order[0] for order in shelf)
+            x_position = 0
+
             for order_w, order_l, rotated in shelf:
-                detail = f"{order_w}x{order_l}"
-                if rotated:
-                    detail += " (R)"
-                orders_details.append(detail)
-                used_area += order_w * order_l
-            used_height += shelf_height
+                color = 'lightblue' if not rotated else 'lightgreen'
+                order_rect = patches.Rectangle((x_position, y_position), order_w, order_l, linewidth=1, edgecolor='blue', facecolor=color, alpha=0.7)
+                ax.add_patch(order_rect)
+                ax.text(x_position + order_w/2, y_position + order_l/2, f"{order_w}x{order_l}" + (" R" if rotated else ""), ha='center', va='center', fontsize=8)
+                x_position += order_w
 
-        waste_area = (sheet_width * used_height) - used_area
-        total_waste += waste_area
+            y_position += shelf_height
 
-        rows.append({
-            "Sheet": sheet_idx,
-            "Orders": ", ".join(orders_details),
-            "Orders Count": len(orders_details),
-            "Used Area": used_area,
-            "Used Height": used_height,
-            "Waste (Area)": waste_area,
-            "Algorithm": algorithm_name
-        })
+        ax.set_xlim(0, sheet_width)
+        ax.set_ylim(0, sheet_length)
+        ax.set_title(f"Sheet {sheet_idx+1} ({algorithm_name})")
+        ax.set_aspect('equal')
 
-    rows.append({
-        "Sheet": "Total",
-        "Orders": "",
-        "Orders Count": "",
-        "Used Area": "",
-        "Used Height": "",
-        "Waste (Area)": total_waste,
-        "Algorithm": algorithm_name
-    })
-
-    return pd.DataFrame(rows)
+    plt.suptitle(f"Order Placements for {algorithm_name}")
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    return fig
 
 
 # ----------------------------
