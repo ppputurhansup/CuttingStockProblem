@@ -247,6 +247,21 @@ def plot_placements_shelf(sheets, sheet_width, sheet_length, algorithm_name):
     plt.suptitle(f"Order Placements for {algorithm_name}")
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     return fig  # คืนค่า figure กลับไปใช้ใน Streamlit
+    for shelf in shelves:
+    if not shelf:  # เช็ค shelf ที่ไม่มีออเดอร์
+        continue
+    shelf_height = max(order[1] for order in shelf)
+    x_position = 0
+
+    for order_w, order_l, rotated in shelf:
+        color = 'lightblue' if not rotated else 'lightgreen'
+        order_rect = patches.Rectangle((x_position, y_position), order_w, order_l, linewidth=1, edgecolor='blue', facecolor=color, alpha=0.7)
+        ax.add_patch(order_rect)
+        ax.text(x_position + order_w/2, y_position + order_l/2, f"{order_w}x{order_l}" + (" R" if rotated else ""), ha='center', va='center', fontsize=8)
+        x_position += order_w
+
+    y_position += shelf_height
+
 
 # ----------------------------
 # ฟังก์ชัน Plot สำหรับ Guillotine
