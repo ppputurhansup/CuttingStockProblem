@@ -1,7 +1,4 @@
 import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-import streamlit as st
 from algorithms import (
     first_fit_decreasing_rotated,
     best_fit_decreasing_rotated,
@@ -11,7 +8,10 @@ from algorithms import (
     plot_placements_shelf,
     plot_placements_guillotine
 )
-# นำเข้าฟังก์ชันจากโค้ดเดิมทั้งหมด
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# ตามด้วยโค้ด Streamlit ของคุณ
 
 st.title("📦 Cutting Stock Problem with Rotation")
 
