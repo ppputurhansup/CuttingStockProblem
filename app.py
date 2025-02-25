@@ -99,17 +99,17 @@ if st.session_state.calculated:
     selected_algo = st.selectbox("🔍 เลือกอัลกอริทึมดู Visualization",
                                  ["FFD Rotated", "BFD Rotated", "Guillotine Rotated"])
 
-if selected_algo:
-st.subheader(f"📑 รายละเอียดการวาง (per sheet) ของ {selected_algo}")
-
-    if selected_algo != "Guillotine Rotated":
-        shelves = st.session_state.results[selected_algo]
-        figs = plot_placements_shelf_plotly(shelves, sheet_width, 99999, selected_algo)
-        for fig in figs:
-            st.plotly_chart(fig)
-
-    else:
-        placements, sheets = st.session_state.results[selected_algo]
-        fig = plot_placements_guillotine(placements, sheets, sheet_width, 99999, selected_algo)
-        st.plotly_chart(fig)  # ✅ ใช้ st.plotly_chart แทน st.pyplot
-
+    if selected_algo:
+    st.subheader(f"📑 รายละเอียดการวาง (per sheet) ของ {selected_algo}")
+    
+        if selected_algo != "Guillotine Rotated":
+            shelves = st.session_state.results[selected_algo]
+            figs = plot_placements_shelf_plotly(shelves, sheet_width, 99999, selected_algo)
+            for fig in figs:
+                st.plotly_chart(fig)
+    
+        else:
+            placements, sheets = st.session_state.results[selected_algo]
+            fig = plot_placements_guillotine(placements, sheets, sheet_width, 99999, selected_algo)
+            st.plotly_chart(fig)  # ✅ ใช้ st.plotly_chart แทน st.pyplot
+    
