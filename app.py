@@ -118,5 +118,5 @@ if st.session_state.calculated:
 
         else:
             placements, sheets = st.session_state.results[selected_algo]
-            fig = plot_placements_guillotine(placements, sheets, sheet_width, selected_algo)
+            fig = plot_placements_guillotine(placements, sheets, sheet_width)
             st.plotly_chart(fig)
