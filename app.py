@@ -66,7 +66,7 @@ if orders and st.button("🚀 คำนวณ"):
 
             total_sheet_area = sheet_width * total_used_length  # ✅ คำนวณพื้นที่ทั้งหมด
         else:
-            placements, sheets = algo(orders, sheet_width)
+            placements, sheets = algo(orders, sheet_width)  # ✅ ใช้ค่าที่แก้ไขแล้ว
             
             # ✅ คำนวณความยาวทั้งหมดที่ใช้จริง
             total_used_length = max((y + used_l) for _, _, _, y, _, used_l, _ in placements) if placements else 0
