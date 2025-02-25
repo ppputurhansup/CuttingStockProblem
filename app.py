@@ -57,24 +57,27 @@ if orders and st.button("🚀 คำนวณ"):
         if name != "Guillotine Rotated":
             shelves = algo(orders, sheet_width)
 
-            # ✅ หาความยาวสูงสุดที่ใช้จากตำแหน่งของชิ้นสุดท้าย
+            # ✅ หาจำนวนแผ่นที่ใช้จริง
+            num_sheets = len(shelves)
+
+            # ✅ หาความยาวสูงสุดของแผ่นที่ใช้จริง
             max_used_length = max(max((y + l) for _, l, y, *_ in shelf) for shelf in shelves)
 
-            # ✅ พื้นที่รวมของแผ่น
-            total_sheet_area = max_used_length * sheet_width
+            # ✅ พื้นที่รวมของแผ่นทั้งหมด
+            total_sheet_area = num_sheets * sheet_width * max_used_length
         else:
             placements, sheets = algo(orders, sheet_width)
 
             # ✅ หาความยาวสูงสุดที่ใช้จริง
             max_used_length = max((y + used_l) for _, _, _, y, _, used_l, _ in placements) if placements else 0
 
-            # ✅ พื้นที่รวมของแผ่น
-            total_sheet_area = max_used_length * sheet_width
+            # ✅ พื้นที่รวมของแผ่นทั้งหมด
+            total_sheet_area = sheet_width * max_used_length
 
-        # ✅ แก้ไข total_waste ไม่ให้ติดลบ
-        total_waste = max(total_sheet_area - total_used_area, 0)
+        # ✅ ป้องกัน total_waste ไม่ให้ติดลบ
+        total_waste = max(0, total_sheet_area - total_used_area)
 
-        # ✅ แก้ไข efficiency ไม่ให้เกิน 100%
+        # ✅ ป้องกัน utilization_efficiency ไม่ให้เกิน 100%
         utilization_eff = min((total_used_area / total_sheet_area) * 100 if total_sheet_area > 0 else 0, 100)
 
         proc_time = time.time() - start_time
