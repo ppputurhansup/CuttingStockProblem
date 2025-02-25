@@ -70,7 +70,7 @@ if orders and st.button("🚀 คำนวณ"):
             shelves = algo(orders, sheet_width)
             sheets_used = len(shelves)
             total_waste = sum(sheet_width - sum(w for w, _, _ in shelf) for shelf in shelves)
-       else:
+        else:
             placements, sheets = algo(orders, sheet_width)
             sheets_used = len(sheets)
         
