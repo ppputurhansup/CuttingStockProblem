@@ -103,9 +103,6 @@ if st.session_state.calculated:
         
         if selected_algo != "Guillotine Rotated":
             shelves = st.session_state.results[selected_algo]
-
-            # ✅ Debug ว่า shelves ถูกต้องก่อนเข้า plot
-            st.write(f"📌 Debug: Shelves for {selected_algo} =", shelves)
         
             # 🔥 ใช้ Matplotlib แทน
             fig = plot_placements_shelf_matplotlib(shelves, sheet_width, selected_algo)
