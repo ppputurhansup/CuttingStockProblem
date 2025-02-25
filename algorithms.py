@@ -150,44 +150,37 @@ from collections import defaultdict
 import plotly.graph_objects as go
 
 def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_name):
-    figs = []
+    import plotly.graph_objects as go
 
-    for sheet_idx, shelf in enumerate(shelves):
+    figs = []
+    for sheet_idx, shelves in enumerate(shelves, start=1):
         fig = go.Figure()
 
-        # เพิ่มพื้นหลัง (แผ่นเมทัลชีท)
-        fig.add_shape(type="rect",
-                      x0=0, y0=0, x1=sheet_width, y1=sheet_length,
-                      line=dict(color="black", width=3),
-                      fillcolor="white")
+        y_position = 0  # ✅ ตำแหน่งเริ่มต้น
+        for shelf in shelves:
+            shelf_height = max(order[1] for order in shelf) if shelf else 0
+            x_position = 0
 
-        y_position = 0
-        shelf_height = max(item[1] for item in shelf)
-        x_position = 0
+            for order_w, order_l, rotated in shelf:
+                color = "lightblue" if not rotated else "lightgreen"
+                fig.add_trace(go.Scatter(
+                    x=[x_position, x_position + order_w, x_position + order_w, x_position, x_position],
+                    y=[y_position, y_position, y_position + order_l, y_position + order_l, y_position],
+                    fill="toself",
+                    line=dict(color="blue"),
+                    fillcolor=color,
+                    name=f"{order_w}x{order_l}" + (" R" if rotated else ""),
+                ))
+                x_position += order_w
 
-        for order_w, order_l, rotated in shelf:
-            fig.add_shape(type="rect",
-                          x0=x_position, y0=y_position,
-                          x1=x_position+order_w, y1=y_position+order_l,
-                          line=dict(color="RoyalBlue"),
-                          fillcolor="LightSkyBlue" if not rotated else "LightGreen",
-                          opacity=0.7)
-
-            # เพิ่ม label บอกขนาด
-            fig.add_annotation(x=x_position+order_w/2, y=y_position+order_l/2,
-                               text=f"{order_w}x{order_l}" + (" (R)" if rotated else ""),
-                               showarrow=False,
-                               font=dict(color="black", size=12))
-
-            x_position += order_w
+            y_position += shelf_height  # ✅ ขยับลงมา
 
         fig.update_layout(
-            title=f"Sheet {sheet_idx+1} ({algorithm_name})",
-            xaxis=dict(range=[0, sheet_width], showgrid=False, zeroline=False),
-            yaxis=dict(range=[0, sheet_length], showgrid=False, zeroline=False, scaleanchor='x'),
-            width=600,
-            height=800,
-            plot_bgcolor='white'
+            title=f"Sheet {sheet_idx} ({algorithm_name})",
+            xaxis=dict(title="Width (cm)", range=[0, sheet_width]),
+            yaxis=dict(title="Height (cm)", range=[0, sheet_length]),
+            showlegend=True,
+            width=600, height=600
         )
 
         figs.append(fig)
@@ -199,34 +192,30 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
 # -----------------
 
 def plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, algorithm_name):
-    sheet_groups = defaultdict(list)
-    for placement in placements:
-        s, order, x, y, used_w, used_l, rotated = placement
-        sheet_groups[s].append((x, y, used_w, used_l, rotated))
+    import plotly.graph_objects as go
 
-    num_sheets = len(sheets)
-    fig, axs = plt.subplots(1, num_sheets, figsize=(6*num_sheets, 8))
-    if num_sheets == 1:
-        axs = [axs]
+    fig = go.Figure()
 
-    for s in range(num_sheets):
-        ax = axs[s]
-        ax.add_patch(patches.Rectangle((0,0), sheet_width, sheet_length, linewidth=2, edgecolor='black', facecolor='none'))
+    for s, order, x, y, used_w, used_l, rotated in placements:
+        color = "lightcoral" if not rotated else "lightyellow"
+        fig.add_trace(go.Scatter(
+            x=[x, x + used_w, x + used_w, x, x],
+            y=[y, y, y + used_l, y + used_l, y],
+            fill="toself",
+            line=dict(color="red"),
+            fillcolor=color,
+            name=f"{used_w}x{used_l}" + (" R" if rotated else ""),
+        ))
 
-        for (x, y, used_w, used_l, rotated) in sheet_groups[s]:
-            color = 'lightcoral' if not rotated else 'lightyellow'
-            ax.add_patch(patches.Rectangle((x,y), used_w, used_l, linewidth=1, edgecolor='red', facecolor=color, alpha=0.7))
-            ax.text(x + used_w/2, y + used_l/2, f"{used_w}x{used_l}" + (" R" if rotated else ""), ha='center', va='center', fontsize=8)
+    fig.update_layout(
+        title=f"Guillotine Cutting ({algorithm_name})",
+        xaxis=dict(title="Width (cm)", range=[0, sheet_width]),
+        yaxis=dict(title="Height (cm)", range=[0, sheet_length]),
+        showlegend=True,
+        width=600, height=600
+    )
 
-        ax.set_xlim(0, sheet_width)
-        ax.set_ylim(0, sheet_length)
-        ax.set_title(f"Sheet {s+1} ({algorithm_name})")
-        ax.set_aspect('equal')
-
-    plt.tight_layout()
-
-    return fig  
-
+    return fig
 # ----------------------------
 # ฟังก์ชันหลัก
 # ----------------------------
