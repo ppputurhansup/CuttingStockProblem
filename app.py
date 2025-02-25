@@ -103,7 +103,10 @@ if st.session_state.calculated:
         
         if selected_algo != "Guillotine Rotated":
             shelves = st.session_state.results[selected_algo]
-            st.write(f"🔍 Debug: Shelves for {selected_algo} =", shelves)
+    
+            # ✅ Debug ว่า shelves ถูกต้องก่อนเข้า plot
+            st.write(f"📌 Debug: Shelves for {selected_algo} =", shelves)
+
             figs = plot_placements_shelf_plotly(shelves, sheet_width, 99999, selected_algo)
             for fig in figs:
                 st.plotly_chart(fig)
