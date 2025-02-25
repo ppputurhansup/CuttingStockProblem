@@ -135,15 +135,16 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
             if not isinstance(shelf_row, list) or not shelf_row:
                 continue
 
-            shelf_height = max((order[1] for order in shelf_row if isinstance(order, tuple) and len(order) > 1), default=0)
+            # ✅ ตรวจสอบว่าทุก `order` เป็น tuple ที่ถูกต้อง
+            valid_orders = [order for order in shelf_row if isinstance(order, tuple) and len(order) == 3]
+            if not valid_orders:
+                print(f"⚠️ Debug: Invalid shelf_row detected =", shelf_row)
+                continue
+
+            shelf_height = max(order[1] for order in valid_orders)
             x_position = 0
 
-            for order in shelf_row:
-                if not isinstance(order, tuple) or len(order) != 3:
-                    print(f"⚠️ Debug: Skipping invalid order =", order)  # ✅ Debugging
-                    continue
-
-                order_w, order_l, rotated = order
+            for order_w, order_l, rotated in valid_orders:
                 color = "lightblue" if not rotated else "lightgreen"
 
                 fig.add_trace(go.Scatter(
@@ -168,6 +169,7 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
         figs.append(fig)
 
     return figs
+
 
 # -----------------
 # 📌 Plot Guillotine (แก้ไขให้ถูกต้อง)
