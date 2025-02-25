@@ -57,13 +57,16 @@ if orders and st.button("🚀 คำนวณ"):
         if name != "Guillotine Rotated":
             shelves = algo(orders, sheet_width)
             sheets_used = len(shelves)
-            total_waste = sum(sheet_width - sum(w for w, _, _ in shelf) for shelf in shelves)
+            total_waste = sum(sheet_width - sum(w for w, _, _ in shelf) for shelf in shelves if isinstance(shelf, list))
         else:
             placements, sheets = algo(orders, sheet_width)
             sheets_used = len(sheets)
             total_waste = sum(sum(rw * rh for (_, _, rw, rh) in sheet) for sheet in sheets)
 
-        utilization_eff = (total_used_area / (sheets_used * sheet_width * 99999)) * 100  
+        # ✅ แก้ไข Utilization Efficiency คำนวณตามค่าที่ใช้จริง
+        total_shelf_area = sum(sum(w * l for w, l, _ in shelf) for shelf in shelves) if name != "Guillotine Rotated" else total_used_area
+        utilization_eff = (total_shelf_area / (sheets_used * sheet_width * 99999)) * 100
+
         proc_time = time.time() - start_time
 
         kpi_rows.append({
