@@ -126,4 +126,29 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
         figs.append(fig)
 
     return figs
+# -----------------
+# 📌 Plot Guillotine (แก้ไขให้ถูกต้อง)
+# -----------------
+def plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, algorithm_name):
+    fig = go.Figure()
 
+    for s, order, x, y, used_w, used_l, rotated in placements:
+        color = "lightcoral" if not rotated else "lightyellow"
+        fig.add_trace(go.Scatter(
+            x=[x, x + used_w, x + used_w, x, x],
+            y=[y, y, y + used_l, y + used_l, y],
+            fill="toself",
+            line=dict(color="red"),
+            fillcolor=color,
+            name=f"{used_w}x{used_l}" + (" R" if rotated else ""),
+        ))
+
+    fig.update_layout(
+        title=f"Guillotine Cutting ({algorithm_name})",
+        xaxis=dict(title="Width (cm)", range=[0, sheet_width]),
+        yaxis=dict(title="Height (cm)", range=[0, sheet_length], autorange="reversed"),  # ✅ พลิกแกน Y
+        showlegend=True,
+        width=600, height=600
+    )
+
+    return fig
