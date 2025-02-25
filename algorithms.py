@@ -91,29 +91,48 @@ def guillotine_cutting_rotated(orders, sheet_width):
                 rx, ry, rw, rh = rect
                 if w <= rw and l <= rh:
                     placements.append((s, order, rx, ry, w, l, False))
-                    new_rects = [(rx+w, ry, rw - w, l), (rx, ry+l, rw, rh - l)]
+                    
+                    # ✅ ปรับปรุงการสร้างพื้นที่ใหม่ (ตรวจสอบค่าติดลบ)
+                    new_rects = []
+                    if rw - w > 0:
+                        new_rects.append((rx + w, ry, rw - w, rh))
+                    if rh - l > 0:
+                        new_rects.append((rx, ry + l, rw, rh - l))
+                    
                     free_rects.pop(i)
                     free_rects.extend(new_rects)
                     placed = True
                     break
+
                 elif l <= rw and w <= rh:
                     placements.append((s, order, rx, ry, l, w, True))
-                    new_rects = [(rx+l, ry, rw - l, w), (rx, ry+w, rw, rh - w)]
+                    
+                    # ✅ ปรับปรุงการสร้างพื้นที่ใหม่ (ตรวจสอบค่าติดลบ)
+                    new_rects = []
+                    if rw - l > 0:
+                        new_rects.append((rx + l, ry, rw - l, rh))
+                    if rh - w > 0:
+                        new_rects.append((rx, ry + w, rw, rh - w))
+                    
                     free_rects.pop(i)
                     free_rects.extend(new_rects)
                     placed = True
                     break
+
             if placed:
                 break
 
         if not placed:
-            # ✅ สร้างแผ่นใหม่
+            # ✅ ถ้าวาง order ไม่ได้ ให้วางลงบนแผ่นใหม่
             new_sheet_free_rects = [(0, 0, sheet_width, float('inf'))]
             sheets.append(new_sheet_free_rects)
 
-            # ✅ วางออเดอร์ลงแผ่นใหม่ทันที
             placements.append((len(sheets)-1, order, 0, 0, w, l, False))
-            new_sheet_free_rects.extend([(w, 0, sheet_width - w, l), (0, l, sheet_width, float('inf') - l)])
+            new_rects = []
+            if sheet_width - w > 0:
+                new_rects.append((w, 0, sheet_width - w, l))
+            new_rects.append((0, l, sheet_width, float('inf') - l))
+            new_sheet_free_rects.extend(new_rects)
 
     return placements, sheets
 
