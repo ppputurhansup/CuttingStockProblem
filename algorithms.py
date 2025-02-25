@@ -104,16 +104,18 @@ def guillotine_cutting_rotated(orders, sheet_width):
 # Plot ffd/bfd (Fixed)
 # -----------------
 def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_name):
+    import plotly.graph_objects as go
+
     figs = []
     for sheet_idx, shelves in enumerate(shelves, start=1):
         fig = go.Figure()
         y_position = 0  # ✅ ตำแหน่งเริ่มต้น
 
         for shelf in shelves:
-            if not shelf:  # เช็คว่ามี shelf ว่างหรือไม่
+            if not isinstance(shelf, list) or len(shelf) == 0:  # ✅ แก้ให้เช็คว่าต้องเป็น list เท่านั้น
                 continue
 
-            shelf_height = max(order[1] for order in shelf)
+            shelf_height = max(order[1] for order in shelf)  # ✅ ต้องแน่ใจว่า shelf ไม่ใช่ int
             x_position = 0
 
             for order_w, order_l, rotated in shelf:
