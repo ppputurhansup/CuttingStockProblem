@@ -143,10 +143,10 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
 
             x_position = 0
             for order in valid_orders:
-                try:
-                    order_w, order_l, rotated = order  # ✅ แก้ไขโครงสร้างการเข้าถึงข้อมูล
-                except ValueError:
-                    print(f"⚠️ Debug: Invalid order format detected =", order)
+                if isinstance(order, tuple) and len(order) == 3:
+                    order_w, order_l, rotated = order
+                else:
+                    print(f"⚠️ Debug: Skipping invalid order = {order}")
                     continue
 
                 color = "lightblue" if not rotated else "lightgreen"
@@ -172,6 +172,7 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
         figs.append(fig)
 
     return figs
+
 # -----------------
 # 📌 Plot Guillotine (แก้ไขให้ถูกต้อง)
 # -----------------
