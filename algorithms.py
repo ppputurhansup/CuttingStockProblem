@@ -114,66 +114,38 @@ def guillotine_cutting_rotated(orders, sheet_width):
 # -----------------
 # 📌 Plot FFD/BFD (แก้ไขให้ถูกต้อง)
 # -----------------
-def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_name):
-    figs = []
-    print(f"📌 Debug: Received shelves for {algorithm_name} =", shelves)
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
+def plot_placements_shelf_matplotlib(shelves, sheet_width, algorithm_name):
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    y_position = 0  # กำหนดจุดเริ่มต้นที่แกน Y
     for sheet_idx, shelf in enumerate(shelves, start=1):
-        fig = go.Figure()
-        y_position = 0
+        x_position = 0  # เริ่มวางจากซ้ายสุด
+        shelf_height = max(order[1] for order in shelf) if shelf else 0
 
-        for shelf_row in shelf:
-            print(f"📌 Debug: Processing shelf_row =", shelf_row)
+        for order_w, order_l, rotated in shelf:
+            color = "lightblue" if not rotated else "lightgreen"
+            rect = patches.Rectangle((x_position, y_position), order_w, order_l, edgecolor="black", facecolor=color, linewidth=1)
+            ax.add_patch(rect)
 
-            if not isinstance(shelf_row, list) or not shelf_row:
-                print(f"⚠️ Debug: Skipping empty shelf_row =", shelf_row)
-                continue
+            # ใส่ Label ที่กึ่งกลางชิ้นงาน
+            ax.text(x_position + order_w / 2, y_position + order_l / 2, f"{order_w}x{order_l}",
+                    ha="center", va="center", fontsize=8, color="black")
 
-            # ✅ ตรวจสอบว่าเป็น List ของ Tuples จริงๆ
-            valid_orders = [order for order in shelf_row if isinstance(order, tuple) and len(order) == 3]
-            if not valid_orders:
-                print(f"⚠️ Debug: Invalid shelf_row detected (Skipping) =", shelf_row)
-                continue
+            x_position += order_w  # ขยับตำแหน่ง x ไปทางขวา
 
-            # ✅ แก้ shelf_height ให้รองรับข้อมูลที่ผิดพลาด
-            try:
-                shelf_height = max(order[1] for order in valid_orders) if valid_orders else 0
-            except ValueError:
-                print(f"⚠️ Debug: Empty shelf_row detected (skipping) =", shelf_row)
-                continue
+        y_position += shelf_height  # ขยับไป shelf ถัดไป
 
-            x_position = 0
-            for order in valid_orders:
-                print(f"📌 Debug: Processing order =", order)
-                if isinstance(order, tuple) and len(order) == 3:
-                    order_w, order_l, rotated = order
-                else:
-                    print(f"⚠️ Debug: Skipping invalid order = {order}")
-                    continue
+    ax.set_xlim(0, sheet_width)
+    ax.set_ylim(0, y_position)
+    ax.set_xlabel("Width (cm)")
+    ax.set_ylabel("Height (cm)")
+    ax.set_title(f"{algorithm_name} Cutting Result")
 
-                color = "lightblue" if not rotated else "lightgreen"
-                fig.add_trace(go.Scatter(
-                    x=[x_position, x_position + order_w, x_position + order_w, x_position, x_position],
-                    y=[y_position, y_position, y_position + order_l, y_position + order_l, y_position],
-                    fill="toself",
-                    line=dict(color="blue"),
-                    fillcolor=color,
-                    name=f"{order_w}x{order_l}" + (" R" if rotated else ""),
-                ))
-                x_position += order_w
-
-            y_position += shelf_height
-
-        fig.update_layout(
-            title=f"Sheet {sheet_idx} ({algorithm_name})",
-            xaxis=dict(title="Width (cm)", range=[0, sheet_width]),
-            yaxis=dict(title="Height (cm)", range=[0, sheet_length], autorange="reversed"),
-            showlegend=True,
-            width=600, height=600
-        )
-        figs.append(fig)
-
-    return figs
+    plt.gca().invert_yaxis()  # พลิกแกน Y ให้วางจากบนลงล่าง
+    return fig
 # -----------------
 # 📌 Plot Guillotine (แก้ไขให้ถูกต้อง)
 # -----------------
