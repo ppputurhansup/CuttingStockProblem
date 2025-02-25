@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from algorithms import(
+from algorithms import (
     first_fit_decreasing_rotated,
     best_fit_decreasing_rotated,
     guillotine_cutting_rotated,
@@ -56,14 +56,12 @@ if orders and st.button("🚀 คำนวณ"):
         start_time = time.time()
         if name != "Guillotine Rotated":
             shelves = algo(orders, sheet_width)
-            
-            # ✅ หาความยาวสูงสุดที่ใช้
-            max_used_length = max(sum(l for _, l, *_ in shelf) for shelf in shelves)
+
+            # ✅ หาความยาวสูงสุดที่ใช้จากตำแหน่งของชิ้นสุดท้าย
+            max_used_length = max(max((y + l) for _, l, y, *_ in shelf) for shelf in shelves)
 
             # ✅ พื้นที่รวมของแผ่น
             total_sheet_area = max_used_length * sheet_width
-
-            total_waste = total_sheet_area - total_used_area
         else:
             placements, sheets = algo(orders, sheet_width)
 
@@ -73,9 +71,12 @@ if orders and st.button("🚀 คำนวณ"):
             # ✅ พื้นที่รวมของแผ่น
             total_sheet_area = max_used_length * sheet_width
 
-            total_waste = total_sheet_area - total_used_area  
+        # ✅ แก้ไข total_waste ไม่ให้ติดลบ
+        total_waste = max(total_sheet_area - total_used_area, 0)
 
-        utilization_eff = (total_used_area / total_sheet_area) * 100 if total_sheet_area > 0 else 0
+        # ✅ แก้ไข efficiency ไม่ให้เกิน 100%
+        utilization_eff = min((total_used_area / total_sheet_area) * 100 if total_sheet_area > 0 else 0, 100)
+
         proc_time = time.time() - start_time
 
         kpi_rows.append({
