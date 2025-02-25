@@ -145,6 +145,11 @@ if st.session_state.calculated:
                 waste_dims = ", ".join([f"{w:.1f}x{h:.1f}" for _, _, w, h in sheet])
 
                 detail_rows.append({
-
-::contentReference[oaicite:0]{index=0}
+                    "Sheet": idx,
+                    "Orders": ", ".join(sheet_orders),
+                    "Orders Count": len(sheet_orders),
+                    "Used Width": "N/A",
+                    "Waste (Area)": round(waste_area, 2),
+                    "Waste (Dim)": waste_dims
+                })  
  
