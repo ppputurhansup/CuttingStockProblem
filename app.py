@@ -65,8 +65,11 @@ if orders and st.button("🚀 คำนวณ"):
         else:
             placements, sheets = algo(orders, sheet_width)
             sheets_used = len(sheets)
+            
+            # ✅ แก้การคำนวณ Used Area
             used_area = sum(used_w * used_l for _, _, _, _, used_w, used_l, _ in placements)
-            total_waste = sheets_used * sheet_width * max_sheet_length - used_area
+            total_sheet_area = sheets_used * sheet_width * max_sheet_length  
+            total_waste = total_sheet_area - used_area
 
         # ✅ Efficiency เป็น % เต็ม (0.31 → 31%)
         utilization_eff = (total_used_area / (sheets_used * sheet_width * max_sheet_length)) * 100
