@@ -24,7 +24,8 @@ def first_fit_decreasing_rotated(orders, sheet_width):
                 feasible_orientations.append((l, w, True))
             if feasible_orientations:
                 chosen = min(feasible_orientations, key=lambda x: x[0])
-                shelf.append(chosen)
+                if isinstance(chosen, tuple) and len(chosen) == 3:
+                    shelves.append([chosen])
                 placed = True
                 break
         
@@ -74,7 +75,9 @@ def best_fit_decreasing_rotated(orders, sheet_width):
                 feasible_orientations.append((l, w, True))
             if feasible_orientations:
                 chosen = min(feasible_orientations, key=lambda x: x[0])
-                shelves.append([chosen])
+                if isinstance(chosen, tuple) and len(chosen) == 3:
+                    shelves.append([chosen])
+
     
     return shelves
 
@@ -126,9 +129,10 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
         y_position = 0
 
         for shelf_row in shelf:
-            if not shelf_row:
-                continue
-            shelf_height = max(order[1] for order in shelf_row)
+            if not isinstance(shelf_row, list) or not shelf_row:  # เช็คว่าเป็น list และไม่ว่าง
+                    continue
+
+            shelf_height = max(order[1] if isinstance(order, tuple) and len(order) > 1 else 0 for order in shelf_row)
             x_position = 0
 
             for order_w, order_l, rotated in shelf_row:
