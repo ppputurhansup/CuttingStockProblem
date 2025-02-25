@@ -4,7 +4,7 @@ from algorithms import(
     first_fit_decreasing_rotated,
     best_fit_decreasing_rotated,
     guillotine_cutting_rotated,
-    plot_placements_shelf_plotly,
+    plot_placements_shelf_matplotlib,
     plot_placements_guillotine
 )
 import time
