@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from algorithms import(
+from algorithms import (
     first_fit_decreasing_rotated,
     best_fit_decreasing_rotated,
     guillotine_cutting_rotated,
@@ -51,47 +51,38 @@ if orders and st.button("🚀 คำนวณ"):
 
     kpi_rows = []
     total_used_area = sum(w * l for w, l in orders)
+    max_sheet_length = 99999  # ✅ ไม่มีข้อจำกัดด้านความยาว ใช้ 99999
 
     for name, algo in algorithms.items():
         start_time = time.time()
-        if name != "Guillotine Rotated":
-            shelves = algo(orders, sheet_width)
-            sheets_used = len(shelves)
-            total_waste = sum(sheet_width - sum(w for w, _, _ in shelf) for shelf in shelves if isinstance(shelf, list))
-        else:
-            placements, sheets = algo(orders, sheet_width)
-            sheets_used = len(sheets)
-            total_waste = sum(sum(rw * rh for (_, _, rw, rh) in sheet) for sheet in sheets)
 
-        # ✅ แก้ไข Utilization Efficiency คำนวณตามค่าที่ใช้จริง
-        total_shelf_area = sum(sum(w * l for w, l, _ in shelf) for shelf in shelves) if name != "Guillotine Rotated" else total_used_area
-        utilization_eff = (total_shelf_area / (sheets_used * sheet_width * 99999)) * 100
         if name != "Guillotine Rotated":
             shelves = algo(orders, sheet_width)
             sheets_used = len(shelves)
-            total_waste = sum(sheet_width - sum(w for w, _, _ in shelf) for shelf in shelves)
+            total_shelf_area = sum(sum(w * l for w, l, _ in shelf) for shelf in shelves)
+            total_waste = sheets_used * sheet_width * max_sheet_length - total_shelf_area
+
         else:
             placements, sheets = algo(orders, sheet_width)
             sheets_used = len(sheets)
-        
-            # ✅ แก้ไขการคำนวณ Total Waste
             used_area = sum(used_w * used_l for _, _, _, _, used_w, used_l, _ in placements)
-            total_sheet_area = sheets_used * sheet_width * 99999  
-            total_waste = total_sheet_area - used_area
+            total_waste = sheets_used * sheet_width * max_sheet_length - used_area
+
+        # ✅ Efficiency เป็น % เต็ม (0.31 → 31%)
+        utilization_eff = (total_used_area / (sheets_used * sheet_width * max_sheet_length)) * 100
 
         proc_time = time.time() - start_time
 
         kpi_rows.append({
             "Algorithm": name,
             "Total Waste (cm²)": round(total_waste, 2),
-            "Utilization Efficiency (%)": round(utilization_eff, 2),
+            "Utilization Efficiency (%)": f"{round(utilization_eff, 2)}%",  # ✅ แสดงเป็น %
             "Processing Time (s)": round(proc_time, 6)
         })
 
-
         results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets)
 
-    st.session_state.kpi_df = pd.DataFrame(kpi_rows).drop(columns=["Sheets Used"], errors="ignore")
+    st.session_state.kpi_df = pd.DataFrame(kpi_rows)
     st.session_state.results = results
     st.session_state.calculated = True
 
@@ -120,8 +111,7 @@ if st.session_state.calculated:
             fig = plot_placements_shelf_matplotlib(shelves, sheet_width, selected_algo)
             st.pyplot(fig)
 
-
         else:
             placements, sheets = st.session_state.results[selected_algo]
-            fig = plot_placements_guillotine(placements, sheets, sheet_width, 99999, selected_algo)
+            fig = plot_placements_guillotine(placements, sheets, sheet_width, max_sheet_length, selected_algo)
             st.plotly_chart(fig)
