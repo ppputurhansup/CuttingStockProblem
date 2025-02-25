@@ -124,27 +124,32 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
 
         for shelf_row in shelf:
             print(f"📌 Debug: Processing shelf_row =", shelf_row)  # ✅ Debugging
+
             if not isinstance(shelf_row, list) or not shelf_row:
+                print(f"⚠️ Debug: Skipping empty shelf_row =", shelf_row)
                 continue
 
-            # ✅ ตรวจสอบว่าเป็น List ของ Tuple จริงๆ
+            # ✅ ตรวจสอบว่าเป็น List ของ Tuples จริงๆ
             valid_orders = [order for order in shelf_row if isinstance(order, tuple) and len(order) == 3]
             if not valid_orders:
-                print(f"⚠️ Debug: Invalid shelf_row detected =", shelf_row)
+                print(f"⚠️ Debug: Invalid shelf_row detected (Skipping) =", shelf_row)
                 continue
 
-            # 🔥 แก้ไขการคำนวณความสูงของ Shelf
             try:
-                shelf_height = max(order[1] for order in valid_orders)
+                shelf_height = max(order[1] for order in valid_orders)  # ✅ ใช้ max() แบบปลอดภัย
             except ValueError:
                 print(f"⚠️ Debug: Empty shelf_row detected (skipping) =", shelf_row)
                 continue
 
             x_position = 0
+            for order in valid_orders:
+                try:
+                    order_w, order_l, rotated = order  # ✅ แก้ไขโครงสร้างการเข้าถึงข้อมูล
+                except ValueError:
+                    print(f"⚠️ Debug: Invalid order format detected =", order)
+                    continue
 
-            for order_w, order_l, rotated in valid_orders:
                 color = "lightblue" if not rotated else "lightgreen"
-
                 fig.add_trace(go.Scatter(
                     x=[x_position, x_position + order_w, x_position + order_w, x_position, x_position],
                     y=[y_position, y_position, y_position + order_l, y_position + order_l, y_position],
@@ -155,7 +160,7 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
                 ))
                 x_position += order_w
 
-            y_position += shelf_height  # ✅ คำนวณตำแหน่งใหม่ถูกต้อง
+            y_position += shelf_height
 
         fig.update_layout(
             title=f"Sheet {sheet_idx} ({algorithm_name})",
