@@ -57,7 +57,7 @@ if orders and st.button("🚀 คำนวณ"):
         if name != "Guillotine Rotated":
             shelves = algo(orders, sheet_width)
             total_shelf_area = sum(sum(w * l for w, l in shelf) for shelf in shelves)
-            total_waste = sum(sheet_width - sum(w for w, _, _) for shelf in shelves if isinstance(shelf, list))
+            total_waste = sum(sheet_width - sum(w for w, _ in shelf) for shelf in shelves if isinstance(shelf, list))
         else:
             placements, sheets = algo(orders, sheet_width)
             
