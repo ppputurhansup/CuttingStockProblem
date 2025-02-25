@@ -124,26 +124,24 @@ def guillotine_cutting_rotated(orders, sheet_width):
 # -----------------
 def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_name):
     figs = []
-    
     for sheet_idx, shelf in enumerate(shelves, start=1):
         fig = go.Figure()
         y_position = 0
 
         for shelf_row in shelf:
-            if not isinstance(shelf_row, list) or not shelf_row:  # ✅ เช็คว่าเป็น list และไม่ว่าง
+            if not isinstance(shelf_row, list) or not shelf_row:  # ตรวจสอบข้อมูลก่อนใช้งาน
                 continue
 
-            # ✅ ตรวจสอบค่าก่อนใช้ max()
-            shelf_height = max(order[1] if isinstance(order, tuple) and len(order) > 1 else 0 for order in shelf_row)
+            # 🔥 แก้ให้เลือกค่าที่ถูกต้อง
+            shelf_height = max((order[1] for order in shelf_row if isinstance(order, tuple) and len(order) > 1), default=0)
             x_position = 0
 
             for order in shelf_row:
-                if not isinstance(order, tuple) or len(order) < 3:
-                    continue  # ✅ ข้ามค่าที่ไม่ถูกต้อง
-
+                if not isinstance(order, tuple) or len(order) != 3:
+                    continue  # ข้ามถ้าไม่ใช่ tuple ที่มีขนาด 3 ค่า
                 order_w, order_l, rotated = order
+                
                 color = "lightblue" if not rotated else "lightgreen"
-
                 fig.add_trace(go.Scatter(
                     x=[x_position, x_position + order_w, x_position + order_w, x_position, x_position],
                     y=[y_position, y_position, y_position + order_l, y_position + order_l, y_position],
@@ -152,19 +150,16 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
                     fillcolor=color,
                     name=f"{order_w}x{order_l}" + (" R" if rotated else ""),
                 ))
-
                 x_position += order_w
-
-            y_position += shelf_height  # ✅ ขยับลง
+            y_position += shelf_height  # ✅ ขยับลงมา
 
         fig.update_layout(
             title=f"Sheet {sheet_idx} ({algorithm_name})",
             xaxis=dict(title="Width (cm)", range=[0, sheet_width]),
-            yaxis=dict(title="Height (cm)", range=[0, sheet_length], autorange="reversed"),  # ✅ พลิกแกน Y
+            yaxis=dict(title="Height (cm)", range=[0, sheet_length], autorange="reversed"),
             showlegend=True,
             width=600, height=600
         )
-
         figs.append(fig)
 
     return figs
