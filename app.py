@@ -70,26 +70,28 @@ if orders and st.button("🚀 คำนวณ"):
             shelves = algo(orders, sheet_width)
             sheets_used = len(shelves)
             total_waste = sum(sheet_width - sum(w for w, _, _ in shelf) for shelf in shelves)
-        else:
+       else:
             placements, sheets = algo(orders, sheet_width)
             sheets_used = len(sheets)
-            max_sheet_length = max(y + used_l for _, _, _, y, _, used_l, _ in placements)  # ค่าความยาวสูงสุดที่ใช้จริง
-            print(f"DEBUG: max_sheet_length = {max_sheet_length}")
-            total_waste = max((sheets_used * sheet_width * max_sheet_length) - total_used_area, 0)
+        
+            # ✅ แก้ไขการคำนวณ Total Waste
+            used_area = sum(used_w * used_l for _, _, _, _, used_w, used_l, _ in placements)
+            total_sheet_area = sheets_used * sheet_width * 99999  
+            total_waste = total_sheet_area - used_area
 
         proc_time = time.time() - start_time
 
         kpi_rows.append({
             "Algorithm": name,
-            "Sheets Used": sheets_used,
             "Total Waste (cm²)": round(total_waste, 2),
             "Utilization Efficiency (%)": round(utilization_eff, 2),
             "Processing Time (s)": round(proc_time, 6)
         })
 
+
         results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets)
 
-    st.session_state.kpi_df = pd.DataFrame(kpi_rows)
+    st.session_state.kpi_df = pd.DataFrame(kpi_rows).drop(columns=["Sheets Used"], errors="ignore")
     st.session_state.results = results
     st.session_state.calculated = True
 
