@@ -61,7 +61,8 @@ if orders and st.button("🚀 คำนวณ"):
             # ✅ ปรับให้รองรับ tuple ที่มีมากกว่า 2 ค่า
             total_shelf_area = sum(sum(w * l for w, l, *_ in shelf) for shelf in shelves)
             total_sheet_length_used = max(sum(l for _, l, *_ in shelf) for shelf in shelves) if shelves else 0
-            total_waste = (sheet_width * total_sheet_length_used) - total_used_area  
+            total_sheet_area = sheet_width * total_sheet_length_used  # ✅ แก้ให้คำนวณจากความยาวจริง
+            total_waste = max(total_sheet_area - total_used_area, 0)  # ✅ ป้องกันค่าติดลบ
 
         else:
             placements, sheets = algo(orders, sheet_width)
@@ -73,10 +74,8 @@ if orders and st.button("🚀 คำนวณ"):
                 total_sheet_length_used = 0
             
             used_area = sum(used_w * used_l for _, _, _, _, used_w, used_l, _ in placements)
-            total_shelf_area = used_area
-
-            # ✅ ปรับปรุงการคำนวณ Waste ใหม่
-            total_waste = (sheet_width * total_sheet_length_used) - used_area  
+            total_sheet_area = sheet_width * total_sheet_length_used  # ✅ แก้ให้คำนวณจากความยาวจริง
+            total_waste = max(total_sheet_area - used_area, 0)  # ✅ ป้องกันค่าติดลบ
 
         utilization_eff = (total_used_area / (total_used_area + total_waste)) * 100 if (total_used_area + total_waste) > 0 else 0
         proc_time = time.time() - start_time
