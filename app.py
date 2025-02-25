@@ -63,14 +63,14 @@ if orders and st.button("🚀 คำนวณ"):
         else:
             placements, sheets = algo(orders, sheet_width)
             
-            # 🔥 หา max height ที่ใช้จริง
-            total_sheet_length_used = max(y + used_l for _, _, _, y, _, used_l, _ in placements)
+            # ✅ คำนวณ total_sheet_length_used
+            total_sheet_length_used = max((y + used_l) for _, _, _, y, _, used_l, _ in placements) if placements else 0
             
             used_area = sum(used_w * used_l for _, _, _, _, used_w, used_l, _ in placements)
             total_shelf_area = used_area
             total_waste = (sheet_width * total_sheet_length_used) - used_area  
 
-        utilization_eff = (total_shelf_area / (total_shelf_area + total_waste)) * 100
+        utilization_eff = (total_shelf_area / (total_shelf_area + total_waste)) * 100 if total_shelf_area + total_waste > 0 else 0
         proc_time = time.time() - start_time
 
         kpi_rows.append({
@@ -80,7 +80,7 @@ if orders and st.button("🚀 คำนวณ"):
             "Processing Time (s)": round(proc_time, 6)
         })
 
-        results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets)
+        results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets, total_sheet_length_used)
 
     st.session_state.kpi_df = pd.DataFrame(kpi_rows)
     st.session_state.results = results
@@ -112,6 +112,6 @@ if st.session_state.calculated:
             st.pyplot(fig)
 
         else:
-            placements, sheets = st.session_state.results[selected_algo]
+            placements, sheets, total_sheet_length_used = st.session_state.results[selected_algo]
             fig = plot_placements_guillotine(placements, sheets, sheet_width, total_sheet_length_used, selected_algo)
             st.plotly_chart(fig)
