@@ -91,7 +91,7 @@ if "kpi_df" not in st.session_state:
     st.session_state.kpi_df = pd.DataFrame()
 
 
-    st.session_state.kpi_df = pd.DataFrame(kpi_df)
+    st.session_state.kpi_df = pd.DataFrame(kpi_rows)
     st.session_state.results = results
     st.session_state.calculated = True
 
