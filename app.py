@@ -50,8 +50,7 @@ if orders and st.button("🚀 คำนวณ"):
     }
 
     kpi_rows = []
-    total_used_area = sum(w * l for w, l in orders)
-    max_sheet_length = 99999  # ✅ ไม่มีข้อจำกัดด้านความยาว ใช้ 99999
+    total_used_area = sum(w * l for w, l in orders)  # ✅ พื้นที่ที่ถูกใช้งานจริง
 
     for name, algo in algorithms.items():
         start_time = time.time()
@@ -59,20 +58,30 @@ if orders and st.button("🚀 คำนวณ"):
         if name != "Guillotine Rotated":
             shelves = algo(orders, sheet_width)
             sheets_used = len(shelves)
-            total_shelf_area = sum(sum(w * l for w, l, _ in shelf) for shelf in shelves)
-            total_waste = sheets_used * sheet_width * max_sheet_length - total_shelf_area
+
+            # ✅ หาความยาวที่ใช้จริงของแต่ละแผ่น
+            total_sheet_length_used = sum(
+                max(l for _, l, _ in shelf) for shelf in shelves if shelf
+            )
+
+            total_sheet_area = sheet_width * total_sheet_length_used  # ✅ พื้นที่แผ่นที่ใช้จริง
+            total_waste = total_sheet_area - total_used_area  # ✅ พื้นที่เสียเปล่า
 
         else:
             placements, sheets = algo(orders, sheet_width)
             sheets_used = len(sheets)
-            
-            # ✅ แก้การคำนวณ Used Area
-            used_area = sum(used_w * used_l for _, _, _, _, used_w, used_l, _ in placements)
-            total_sheet_area = sheets_used * sheet_width * max_sheet_length  
-            total_waste = total_sheet_area - used_area
 
-        # ✅ Efficiency เป็น % เต็ม (0.31 → 31%)
-        utilization_eff = (total_used_area / (sheets_used * sheet_width * max_sheet_length)) * 100
+            # ✅ หาความยาวของแผ่นที่ถูกใช้งานจริง
+            total_sheet_length_used = max(
+                y + used_l for _, _, _, y, _, used_l, _ in placements
+            )
+
+            total_sheet_area = sheet_width * total_sheet_length_used  # ✅ พื้นที่แผ่นที่ใช้จริง
+            used_area = sum(used_w * used_l for _, _, _, _, used_w, used_l, _ in placements)  # ✅ พื้นที่ที่ถูกใช้
+            total_waste = total_sheet_area - used_area  # ✅ พื้นที่เสียเปล่า
+
+        # ✅ Efficiency เป็น % เต็ม (0.09 → 9%)
+        utilization_eff = (total_used_area / total_sheet_area) * 100
 
         proc_time = time.time() - start_time
 
@@ -116,5 +125,5 @@ if st.session_state.calculated:
 
         else:
             placements, sheets = st.session_state.results[selected_algo]
-            fig = plot_placements_guillotine(placements, sheets, sheet_width, max_sheet_length, selected_algo)
+            fig = plot_placements_guillotine(placements, sheets, sheet_width, total_sheet_length_used, selected_algo)
             st.plotly_chart(fig)
