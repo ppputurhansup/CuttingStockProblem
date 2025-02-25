@@ -83,6 +83,14 @@ if orders and st.button("🚀 คำนวณ"):
 
         results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets)
 
+if "calculated" not in st.session_state:
+    st.session_state.calculated = False
+if "results" not in st.session_state:
+    st.session_state.results = {}
+if "kpi_df" not in st.session_state:
+    st.session_state.kpi_df = pd.DataFrame()
+
+
     st.session_state.kpi_df = pd.DataFrame(kpi_rows)
     st.session_state.results = results
     st.session_state.calculated = True
