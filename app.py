@@ -74,7 +74,8 @@ if orders and st.button("🚀 คำนวณ"):
             placements, sheets = algo(orders, sheet_width)
             sheets_used = len(sheets)
             max_sheet_length = max(y + used_l for _, _, _, y, _, used_l, _ in placements)  # ค่าความยาวสูงสุดที่ใช้จริง
-            total_waste = (sheets_used * sheet_width * max_sheet_length) - total_used_area
+            print(f"DEBUG: max_sheet_length = {max_sheet_length}")
+            total_waste = max((sheets_used * sheet_width * max_sheet_length) - total_used_area, 0)
 
         proc_time = time.time() - start_time
 
