@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from algorithms import (
+from algorithms import(
     first_fit_decreasing_rotated,
     best_fit_decreasing_rotated,
     guillotine_cutting_rotated,
@@ -50,34 +50,32 @@ if orders and st.button("🚀 คำนวณ"):
     }
 
     kpi_rows = []
-    total_used_area = sum(w * l for w, l in orders)
+    total_used_area = sum(w * l for w, l in orders)  # ✅ พื้นที่ทั้งหมดที่ใช้จริง
 
     for name, algo in algorithms.items():
         start_time = time.time()
-
         if name != "Guillotine Rotated":
             shelves = algo(orders, sheet_width)
             
-            # ✅ ปรับให้รองรับ tuple ที่มีมากกว่า 2 ค่า
-            total_shelf_area = sum(sum(w * l for w, l, *_ in shelf) for shelf in shelves)
-            total_sheet_length_used = max(sum(l for _, l, *_ in shelf) for shelf in shelves) if shelves else 0
-            total_sheet_area = sheet_width * total_sheet_length_used  # ✅ แก้ให้คำนวณจากความยาวจริง
-            total_waste = max(total_sheet_area - total_used_area, 0)  # ✅ ป้องกันค่าติดลบ
+            # ✅ หาความยาวสูงสุดที่ใช้
+            max_used_length = max(sum(l for _, l, *_ in shelf) for shelf in shelves)
 
+            # ✅ พื้นที่รวมของแผ่น
+            total_sheet_area = max_used_length * sheet_width
+
+            total_waste = total_sheet_area - total_used_area
         else:
             placements, sheets = algo(orders, sheet_width)
-            
-            # ✅ คำนวณ total_sheet_length_used (ความยาวที่ถูกใช้จริง)
-            if placements:
-                total_sheet_length_used = max((y + used_l) for _, _, _, y, _, used_l, _ in placements)
-            else:
-                total_sheet_length_used = 0
-            
-            used_area = sum(used_w * used_l for _, _, _, _, used_w, used_l, _ in placements)
-            total_sheet_area = sheet_width * total_sheet_length_used  # ✅ แก้ให้คำนวณจากความยาวจริง
-            total_waste = max(total_sheet_area - used_area, 0)  # ✅ ป้องกันค่าติดลบ
 
-        utilization_eff = (total_used_area / (total_used_area + total_waste)) * 100 if (total_used_area + total_waste) > 0 else 0
+            # ✅ หาความยาวสูงสุดที่ใช้จริง
+            max_used_length = max((y + used_l) for _, _, _, y, _, used_l, _ in placements) if placements else 0
+
+            # ✅ พื้นที่รวมของแผ่น
+            total_sheet_area = max_used_length * sheet_width
+
+            total_waste = total_sheet_area - total_used_area  
+
+        utilization_eff = (total_used_area / total_sheet_area) * 100 if total_sheet_area > 0 else 0
         proc_time = time.time() - start_time
 
         kpi_rows.append({
@@ -87,7 +85,7 @@ if orders and st.button("🚀 คำนวณ"):
             "Processing Time (s)": round(proc_time, 6)
         })
 
-        results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets, total_sheet_length_used)
+        results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets, max_used_length)
 
     st.session_state.kpi_df = pd.DataFrame(kpi_rows)
     st.session_state.results = results
@@ -119,6 +117,6 @@ if st.session_state.calculated:
             st.pyplot(fig)
 
         else:
-            placements, sheets, total_sheet_length_used = st.session_state.results[selected_algo]
-            fig = plot_placements_guillotine(placements, sheets, sheet_width, total_sheet_length_used, selected_algo)
+            placements, sheets, max_used_length = st.session_state.results[selected_algo]
+            fig = plot_placements_guillotine(placements, sheets, sheet_width, max_used_length, selected_algo)
             st.plotly_chart(fig)
