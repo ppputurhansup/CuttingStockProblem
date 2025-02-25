@@ -61,7 +61,8 @@ if orders and st.button("🚀 คำนวณ"):
             num_sheets = len(shelves)
 
             # ✅ หาความยาวสูงสุดของแต่ละแผ่นที่ใช้จริง
-            max_used_length = sum(max((y + l) for _, l, y, *_ in shelf) for shelf in shelves)
+            max_used_length_per_sheet = [max((y + l) for _, l, y, *_ in shelf) for shelf in shelves]
+            max_used_length = max(max_used_length_per_sheet)  # ✅ ค่าที่ถูกต้อง
 
             # ✅ พื้นที่รวมของแผ่นทั้งหมด
             total_sheet_area = num_sheets * sheet_width * max_used_length
