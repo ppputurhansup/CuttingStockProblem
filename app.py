@@ -100,7 +100,7 @@ if st.session_state.calculated:
                                  ["FFD Rotated", "BFD Rotated", "Guillotine Rotated"])
 
     if selected_algo:
-    st.subheader(f"📑 รายละเอียดการวาง (per sheet) ของ {selected_algo}")
+        st.subheader(f"📑 รายละเอียดการวาง (per sheet) ของ {selected_algo}")
     
         if selected_algo != "Guillotine Rotated":
             shelves = st.session_state.results[selected_algo]
