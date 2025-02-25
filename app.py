@@ -98,3 +98,21 @@ if "kpi_df" not in st.session_state:
 if st.session_state.calculated:
     st.subheader("📌 KPI Summary")
     st.dataframe(st.session_state.kpi_df)
+    
+    selected_algo = st.selectbox("🔍 เลือกอัลกอริทึมดู Visualization",
+                                 ["FFD Rotated", "BFD Rotated", "Guillotine Rotated"])
+
+    if selected_algo:
+        st.subheader(f"📑 รายละเอียดการวาง (per sheet) ของ {selected_algo}")
+        
+        if selected_algo != "Guillotine Rotated":
+            shelves = st.session_state.results[selected_algo]
+        
+            # 🔥 ใช้ Matplotlib แทน
+            fig = plot_placements_shelf_matplotlib(shelves, sheet_width, selected_algo)
+            st.pyplot(fig)
+
+        else:
+            placements, sheets, total_used_length = st.session_state.results[selected_algo]
+            fig = plot_placements_guillotine(placements, sheets, sheet_width, total_used_length, selected_algo)
+            st.plotly_chart(fig)
