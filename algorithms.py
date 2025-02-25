@@ -75,7 +75,43 @@ def best_fit_decreasing_rotated(orders, sheet_width):
                 shelves.append([chosen])
 
     return shelves
+# ----------------------------------------
+# 3. Guillotine Cutting with Rotation
+# ----------------------------------------
+def guillotine_cutting_rotated(orders, sheet_width):
+    sheets = [[]]
+    placements = []
+    orders_sorted = sorted(orders, key=lambda x: max(x[0], x[1]), reverse=True)
 
+    for order in orders_sorted:
+        w, l = order
+        placed = False
+
+        for s, free_rects in enumerate(sheets):
+            for i, rect in enumerate(free_rects):
+                rx, ry, rw, rh = rect
+                if w <= rw and l <= rh:
+                    placements.append((s, order, rx, ry, w, l, False))
+                    new_rects = [(rx+w, ry, rw - w, l), (rx, ry+l, rw, rh - l)]
+                    free_rects.pop(i)
+                    free_rects.extend(new_rects)
+                    placed = True
+                    break
+                elif l <= rw and w <= rh:
+                    placements.append((s, order, rx, ry, l, w, True))
+                    new_rects = [(rx+l, ry, rw - l, w), (rx, ry+w, rw, rh - w)]
+                    free_rects.pop(i)
+                    free_rects.extend(new_rects)
+                    placed = True
+                    break
+            if placed:
+                break
+
+        if not placed:
+            new_sheet_free_rects = [(0, 0, sheet_width, float('inf'))]
+            sheets.append(new_sheet_free_rects)
+    
+    return placements, sheets
 # -----------------
 # 📌 Plot FFD/BFD (แก้ไขให้ถูกต้อง)
 # -----------------
