@@ -107,10 +107,16 @@ def guillotine_cutting_rotated(orders, sheet_width):
                 break
 
         if not placed:
+            # ✅ สร้างแผ่นใหม่
             new_sheet_free_rects = [(0, 0, sheet_width, float('inf'))]
             sheets.append(new_sheet_free_rects)
-    
+
+            # ✅ วางออเดอร์ลงแผ่นใหม่ทันที
+            placements.append((len(sheets)-1, order, 0, 0, w, l, False))
+            new_sheet_free_rects.extend([(w, 0, sheet_width - w, l), (0, l, sheet_width, float('inf') - l)])
+
     return placements, sheets
+
 # -----------------
 # 📌 Plot FFD/BFD (แก้ไขให้ถูกต้อง)
 # -----------------
