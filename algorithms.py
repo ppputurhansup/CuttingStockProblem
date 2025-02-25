@@ -116,14 +116,14 @@ def guillotine_cutting_rotated(orders, sheet_width):
 # -----------------
 def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_name):
     figs = []
-    print(f"📌 Debug: Received shelves for {algorithm_name} =", shelves)  # ✅ Debugging
+    print(f"📌 Debug: Received shelves for {algorithm_name} =", shelves)
 
     for sheet_idx, shelf in enumerate(shelves, start=1):
         fig = go.Figure()
         y_position = 0
 
         for shelf_row in shelf:
-            print(f"📌 Debug: Processing shelf_row =", shelf_row)  # ✅ Debugging
+            print(f"📌 Debug: Processing shelf_row =", shelf_row)
 
             if not isinstance(shelf_row, list) or not shelf_row:
                 print(f"⚠️ Debug: Skipping empty shelf_row =", shelf_row)
@@ -135,15 +135,16 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
                 print(f"⚠️ Debug: Invalid shelf_row detected (Skipping) =", shelf_row)
                 continue
 
+            # ✅ แก้ shelf_height ให้รองรับข้อมูลที่ผิดพลาด
             try:
-                shelf_height = max(order[1] for order in valid_orders)  # ✅ ใช้ max() แบบปลอดภัย
+                shelf_height = max(order[1] for order in valid_orders) if valid_orders else 0
             except ValueError:
                 print(f"⚠️ Debug: Empty shelf_row detected (skipping) =", shelf_row)
                 continue
 
             x_position = 0
             for order in valid_orders:
-                print(f"📌 Debug: Processing order =", order)  # ✅ Debugging
+                print(f"📌 Debug: Processing order =", order)
                 if isinstance(order, tuple) and len(order) == 3:
                     order_w, order_l, rotated = order
                 else:
