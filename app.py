@@ -67,9 +67,36 @@ if orders and st.button("🚀 คำนวณ"):
             sheets_used = len(sheets)
             total_waste = sum(sum(rw * rh for (_, _, rw, rh) in sheet) for sheet in sheets)
 
-        # ✅ คำนวณ Utilization Efficiency ใหม่ โดยไม่ใช้ `sheet_length`
-        total_shelf_area = sum(sum(w * l for w, l, _ in shelf) for shelf in shelves) if name != "Guillotine Rotated" else total_used_area
-        utilization_eff = (total_shelf_area / (sheets_used * sheet_width * 99999)) * 100  # ให้ถือว่าแผ่นยาวมาก
+        kpi_rows = []  # ✅ กำหนดค่าเริ่มต้นให้ kpi_rows
+
+        for name, algo in algorithms.items():
+            start_time = time.time()
+            if name != "Guillotine Rotated":
+                shelves = algo(orders, sheet_width)
+                sheets_used = len(shelves)
+                total_waste = sum(sheet_width - sum(w for w, _, _ in shelf) for shelf in shelves)
+            else:
+                placements, sheets = algo(orders, sheet_width)
+                sheets_used = len(sheets)
+                total_waste = sum(sum(rw * rh for (_, _, rw, rh) in sheet) for sheet in sheets)
+        
+            total_shelf_area = sum(sum(w * l for w, l, _ in shelf) for shelf in shelves) if name != "Guillotine Rotated" else total_used_area
+            utilization_eff = (total_shelf_area / (sheets_used * sheet_width * 99999)) * 100  # ใช้ค่าความยาวสูงมากแทน
+            proc_time = time.time() - start_time
+
+    kpi_rows.append({
+        "Algorithm": name,
+        "Sheets Used": sheets_used,
+        "Total Waste (cm²)": round(total_waste, 2),
+        "Utilization Efficiency (%)": round(utilization_eff, 2),
+        "Processing Time (s)": round(proc_time, 6)
+    })
+
+    results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets)
+
+st.session_state.kpi_df = pd.DataFrame(kpi_rows)  # ✅ ใช้งานได้แล้ว
+st.session_state.results = results
+st.session_state.calculated = True
 
         proc_time = time.time() - start_time
 
