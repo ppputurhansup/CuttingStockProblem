@@ -37,7 +37,6 @@ def first_fit_decreasing_rotated(orders, sheet_width):
                 shelves.append([chosen])
     
     return shelves
-
 # ----------------------------------------
 # 2. Best Fit Decreasing with Rotation
 # ----------------------------------------
@@ -128,13 +127,19 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
             if not isinstance(shelf_row, list) or not shelf_row:
                 continue
 
-            # ✅ ตรวจสอบว่าทุก `order` เป็น tuple ที่ถูกต้อง
+            # ✅ ตรวจสอบว่าเป็น List ของ Tuple จริงๆ
             valid_orders = [order for order in shelf_row if isinstance(order, tuple) and len(order) == 3]
             if not valid_orders:
                 print(f"⚠️ Debug: Invalid shelf_row detected =", shelf_row)
                 continue
 
-            shelf_height = max(order[1] for order in valid_orders)
+            # 🔥 แก้ไขการคำนวณความสูงของ Shelf
+            try:
+                shelf_height = max(order[1] for order in valid_orders)
+            except ValueError:
+                print(f"⚠️ Debug: Empty shelf_row detected (skipping) =", shelf_row)
+                continue
+
             x_position = 0
 
             for order_w, order_l, rotated in valid_orders:
@@ -150,7 +155,7 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
                 ))
                 x_position += order_w
 
-            y_position += shelf_height
+            y_position += shelf_height  # ✅ คำนวณตำแหน่งใหม่ถูกต้อง
 
         fig.update_layout(
             title=f"Sheet {sheet_idx} ({algorithm_name})",
