@@ -4,64 +4,88 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches  # เพิ่มบรรทัดนี้
 
 
+# ----------------------------------------
+# 1. First Fit Decreasing with rotation
+# ----------------------------------------
 def first_fit_decreasing_rotated(orders, sheet_width):
-    orders_sorted = sorted(orders, key=lambda x: max(x), reverse=True)
+    orders_sorted = sorted(orders, key=lambda x: max(x[0], x[1]), reverse=True)
     shelves = []
     for order in orders_sorted:
         w, l = order
         placed = False
         for shelf in shelves:
             remaining = sheet_width - sum(item[0] for item in shelf)
-            feasible = [(w, l, False), (l, w, True)]
-            feasible = [f for f in feasible if f[0] <= remaining]
-            if feasible:
-                chosen = min(feasible, key=lambda x: x[0])
-                shelf.append((chosen[0], chosen[1], chosen[2]))  # ✅ แก้ตรงนี้
+            feasible_orientations = []
+            if w <= remaining:
+                feasible_orientations.append((w, l, False))
+            if l <= remaining:
+                feasible_orientations.append((l, w, True))
+            if feasible_orientations:
+                chosen = min(feasible_orientations, key=lambda x: x[0])
+                shelf.append(chosen)
                 placed = True
                 break
         if not placed:
-            feasible = [(w, l, False), (l, w, True)]
-            feasible = [f for f in feasible if f[0] <= sheet_width]
-            if feasible:
-                chosen = min(feasible, key=lambda x: x[0])
-                shelves.append([(chosen[0], chosen[1], chosen[2])])  # ✅ และตรงนี้
+            feasible_orientations = []
+            if w <= sheet_width:
+                feasible_orientations.append((w, l, False))
+            if l <= sheet_width:
+                feasible_orientations.append((l, w, True))
+            if feasible_orientations:
+                chosen = min(feasible_orientations, key=lambda x: x[0])
+                shelves.append([chosen])
             else:
-                print("❌ Order", order, "ไม่สามารถวางบนแผ่นได้")
+                print("❌ Order", order, "ไม่สามารถวางบนแผ่นใหม่ได้")
     return shelves
+# ----------------------------------------
+# 2. Best Fit Decreasing with rotation
+# ----------------------------------------
 
 def best_fit_decreasing_rotated(orders, sheet_width):
-    orders_sorted = sorted(orders, key=lambda x: max(x), reverse=True)
+    orders_sorted = sorted(orders, key=lambda x: max(x[0], x[1]), reverse=True)
     shelves = []
     for order in orders_sorted:
         w, l = order
-        best_shelf, best_orient, best_leftover = None, None, float('inf')
-        for idx, shelf in enumerate(shelves):
+        best_shelf_index = None
+        best_orientation = None
+        best_leftover = float('inf')
+        for shelf_index, shelf in enumerate(shelves):
             remaining = sheet_width - sum(item[0] for item in shelf)
-            for orient in [(w, l, False), (l, w, True)]:
-                if orient[0] <= remaining and (remaining - orient[0]) < best_leftover:
-                    best_shelf, best_orient, best_leftover = idx, orient, remaining - orient[0]
-        if best_shelf is not None:
-            shelves[best_shelf].append((best_orient[0], best_orient[1], best_orient[2]))  # ✅ และตรงนี้
+            for orientation in [(w, l, False), (l, w, True)]:
+                used_w = orientation[0]
+                if used_w <= remaining:
+                    leftover = remaining - used_w
+                    if leftover < best_leftover:
+                        best_leftover = leftover
+                        best_shelf_index = shelf_index
+                        best_orientation = orientation
+        if best_shelf_index is not None:
+            shelves[best_shelf_index].append(best_orientation)
         else:
-            feasible = [(w, l, False), (l, w, True)]
-            feasible = [f for f in feasible if f[0] <= sheet_width]
-            if feasible:
-                chosen = min(feasible, key=lambda x: x[0])
-                shelves.append([(chosen[0], chosen[1], chosen[2])])  # ✅ และตรงนี้
+            feasible_orientations = []
+            if w <= sheet_width:
+                feasible_orientations.append((w, l, False))
+            if l <= sheet_width:
+                feasible_orientations.append((l, w, True))
+            if feasible_orientations:
+                chosen = min(feasible_orientations, key=lambda x: x[0])
+                shelves.append([chosen])
             else:
-                print("❌ Order", order, "ไม่สามารถวางบนแผ่นได้")
+                print("❌ Order", order, "ไม่สามารถวางบนแผ่นใหม่ได้")
     return shelves
 
-# ----------------------------
+# ----------------------------------------
 # 3. Guillotine Cutting with Rotation
-# ----------------------------
-def guillotine_cutting_rotated(orders, sheet_width, sheet_length):
-    sheets = [ [(0, 0, sheet_width, sheet_length)] ]
+# ----------------------------------------
+def guillotine_cutting_rotated(orders, sheet_width):
+    sheets = [[]]  # ใช้ list แทนเพื่อให้ไม่จำกัดความยาว
     placements = []
     orders_sorted = sorted(orders, key=lambda x: max(x[0], x[1]), reverse=True)
+
     for order in orders_sorted:
         w, l = order
         placed = False
+
         for s, free_rects in enumerate(sheets):
             for i, rect in enumerate(free_rects):
                 rx, ry, rw, rh = rect
@@ -91,14 +115,15 @@ def guillotine_cutting_rotated(orders, sheet_width, sheet_length):
                     break
             if placed:
                 break
+
         if not placed:
-            new_sheet_free_rects = [(0, 0, sheet_width, sheet_length)]
+            new_sheet_free_rects = [(0, 0, sheet_width, float('inf'))]  # ไม่จำกัดความยาว
             sheets.append(new_sheet_free_rects)
             s = len(sheets) - 1
             feasible_orientations = []
-            if w <= sheet_width and l <= sheet_length:
+            if w <= sheet_width:
                 feasible_orientations.append((w, l, False))
-            if l <= sheet_width and w <= sheet_length:
+            if l <= sheet_width:
                 feasible_orientations.append((l, w, True))
             if feasible_orientations:
                 chosen = min(feasible_orientations, key=lambda x: x[0])
@@ -107,15 +132,16 @@ def guillotine_cutting_rotated(orders, sheet_width, sheet_length):
                 new_rects = []
                 if sheet_width - used_w > 0:
                     new_rects.append((used_w, 0, sheet_width - used_w, used_l))
-                if sheet_length - used_l > 0:
-                    new_rects.append((0, used_l, sheet_width, sheet_length - used_l))
                 new_sheet_free_rects.pop(0)
                 new_sheet_free_rects.extend(new_rects)
             else:
                 print("❌ Order", order, "ไม่สามารถวางบนแผ่นใหม่ได้")
-    return placements, sheets
-# algorithms.py (ตัดฟังก์ชันอื่นออก เก็บที่เหลือไว้เหมือนเดิม)
 
+    return placements, sheets
+    
+# ---------------
+# Plot ffd/bfd
+# ---------------
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import pandas as pd
@@ -168,7 +194,9 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
 
     return figs
 
-
+# -----------------
+# Plot guillotine
+# -----------------
 
 def plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, algorithm_name):
     sheet_groups = defaultdict(list)
