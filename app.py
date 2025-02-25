@@ -64,10 +64,15 @@ if orders and st.button("🚀 คำนวณ"):
             placements, sheets = algo(orders, sheet_width)
             
             # ✅ คำนวณ total_sheet_length_used
-            total_sheet_length_used = max((y + used_l) for _, _, _, y, _, used_l, _ in placements) if placements else 0
+            if placements:
+                total_sheet_length_used = max((y + used_l) for _, _, _, y, _, used_l, _ in placements)
+            else:
+                total_sheet_length_used = 0
             
             used_area = sum(used_w * used_l for _, _, _, _, used_w, used_l, _ in placements)
             total_shelf_area = used_area
+
+            # ✅ ปรับปรุงการคำนวณ Waste ใหม่
             total_waste = (sheet_width * total_sheet_length_used) - used_area  
 
         utilization_eff = (total_shelf_area / (total_shelf_area + total_waste)) * 100 if total_shelf_area + total_waste > 0 else 0
