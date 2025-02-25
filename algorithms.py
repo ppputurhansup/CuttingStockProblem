@@ -124,24 +124,28 @@ def guillotine_cutting_rotated(orders, sheet_width):
 # -----------------
 def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_name):
     figs = []
+    print(f"📌 Debug: Received shelves for {algorithm_name} =", shelves)  # ✅ Debugging
+
     for sheet_idx, shelf in enumerate(shelves, start=1):
         fig = go.Figure()
         y_position = 0
 
         for shelf_row in shelf:
-            if not isinstance(shelf_row, list) or not shelf_row:  # ตรวจสอบข้อมูลก่อนใช้งาน
+            print(f"📌 Debug: Processing shelf_row =", shelf_row)  # ✅ Debugging
+            if not isinstance(shelf_row, list) or not shelf_row:
                 continue
 
-            # 🔥 แก้ให้เลือกค่าที่ถูกต้อง
             shelf_height = max((order[1] for order in shelf_row if isinstance(order, tuple) and len(order) > 1), default=0)
             x_position = 0
 
             for order in shelf_row:
                 if not isinstance(order, tuple) or len(order) != 3:
-                    continue  # ข้ามถ้าไม่ใช่ tuple ที่มีขนาด 3 ค่า
+                    print(f"⚠️ Debug: Skipping invalid order =", order)  # ✅ Debugging
+                    continue
+
                 order_w, order_l, rotated = order
-                
                 color = "lightblue" if not rotated else "lightgreen"
+
                 fig.add_trace(go.Scatter(
                     x=[x_position, x_position + order_w, x_position + order_w, x_position, x_position],
                     y=[y_position, y_position, y_position + order_l, y_position + order_l, y_position],
@@ -151,7 +155,8 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
                     name=f"{order_w}x{order_l}" + (" R" if rotated else ""),
                 ))
                 x_position += order_w
-            y_position += shelf_height  # ✅ ขยับลงมา
+
+            y_position += shelf_height
 
         fig.update_layout(
             title=f"Sheet {sheet_idx} ({algorithm_name})",
@@ -163,6 +168,7 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
         figs.append(fig)
 
     return figs
+
 # -----------------
 # 📌 Plot Guillotine (แก้ไขให้ถูกต้อง)
 # -----------------
