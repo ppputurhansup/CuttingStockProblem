@@ -67,37 +67,8 @@ if orders and st.button("🚀 คำนวณ"):
             sheets_used = len(sheets)
             total_waste = sum(sum(rw * rh for (_, _, rw, rh) in sheet) for sheet in sheets)
 
-        kpi_rows = []  # ✅ กำหนดค่าเริ่มต้นให้ kpi_rows
-
-        for name, algo in algorithms.items():
-            start_time = time.time()
-            if name != "Guillotine Rotated":
-                shelves = algo(orders, sheet_width)
-                sheets_used = len(shelves)
-                total_waste = sum(sheet_width - sum(w for w, _, _ in shelf) for shelf in shelves)
-            else:
-                placements, sheets = algo(orders, sheet_width)
-                sheets_used = len(sheets)
-                total_waste = sum(sum(rw * rh for (_, _, rw, rh) in sheet) for sheet in sheets)
-        
-            total_shelf_area = sum(sum(w * l for w, l, _ in shelf) for shelf in shelves) if name != "Guillotine Rotated" else total_used_area
-            utilization_eff = (total_shelf_area / (sheets_used * sheet_width * 99999)) * 100  # ใช้ค่าความยาวสูงมากแทน
-            proc_time = time.time() - start_time
-
-    kpi_rows.append({
-        "Algorithm": name,
-        "Sheets Used": sheets_used,
-        "Total Waste (cm²)": round(total_waste, 2),
-        "Utilization Efficiency (%)": round(utilization_eff, 2),
-        "Processing Time (s)": round(proc_time, 6)
-    })
-
-    results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets)
-
-st.session_state.kpi_df = pd.DataFrame(kpi_rows)  # ✅ ใช้งานได้แล้ว
-st.session_state.results = results
-st.session_state.calculated = True
-
+        total_shelf_area = sum(sum(w * l for w, l, _ in shelf) for shelf in shelves) if name != "Guillotine Rotated" else total_used_area
+        utilization_eff = (total_shelf_area / (sheets_used * sheet_width * 99999)) * 100  # ใช้ค่าความยาวสูงมากแทน
         proc_time = time.time() - start_time
 
         kpi_rows.append({
@@ -110,17 +81,16 @@ st.session_state.calculated = True
 
         results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets)
 
+    st.session_state.kpi_df = pd.DataFrame(kpi_rows)
+    st.session_state.results = results
+    st.session_state.calculated = True
+
 if "calculated" not in st.session_state:
     st.session_state.calculated = False
 if "results" not in st.session_state:
     st.session_state.results = {}
 if "kpi_df" not in st.session_state:
     st.session_state.kpi_df = pd.DataFrame()
-
-
-    st.session_state.kpi_df = pd.DataFrame(kpi_rows)
-    st.session_state.results = results
-    st.session_state.calculated = True
 
 if st.session_state.calculated:
     st.subheader("📌 KPI Summary")
@@ -131,7 +101,7 @@ if st.session_state.calculated:
 
     if selected_algo:
         st.subheader(f"📑 รายละเอียดการวาง (per sheet) ของ {selected_algo}")
-        
+
         if selected_algo != "Guillotine Rotated":
             shelves = st.session_state.results[selected_algo]
             detail_rows = []
@@ -171,30 +141,10 @@ if st.session_state.calculated:
             detail_rows = []
             for idx, sheet in enumerate(sheets, 1):
                 sheet_orders = [f"{p[4]}x{p[5]}{' (R)' if p[6] else ''}" for p in placements if p[0] == idx-1]
-                waste_area = sum(w*h for _,_,w,h in sheet)
-                waste_dims = ", ".join([f"{w:.1f}x{h:.1f}" for _,_,w,h in sheet])
+                waste_area = sum(w * h for _, _, w, h in sheet)
+                waste_dims = ", ".join([f"{w:.1f}x{h:.1f}" for _, _, w, h in sheet])
 
                 detail_rows.append({
-                    "Sheet": idx,
-                    "Orders": ", ".join(sheet_orders),
-                    "Orders Count": len(sheet_orders),
-                    "Used Width": "N/A",
-                    "Waste (Area)": round(waste_area, 2),
-                    "Waste (Dim)": waste_dims
-                })
 
-            total_waste = sum(row["Waste (Area)"] for row in detail_rows)
-            detail_rows.append({
-                "Sheet": "Total",
-                "Orders": "",
-                "Orders Count": "",
-                "Used Width": "",
-                "Waste (Area)": round(total_waste, 2),
-                "Waste (Dim)": ""
-            })
-
-            details_df = pd.DataFrame(detail_rows)
-            st.dataframe(details_df)
-
-            fig = plot_placements_guillotine(placements, sheets, sheet_width, 99999, selected_algo)
-            st.pyplot(fig)
+::contentReference[oaicite:0]{index=0}
+ 
