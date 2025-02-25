@@ -59,18 +59,18 @@ if orders and st.button("🚀 คำนวณ"):
 
             # ✅ หาความยาวสูงสุดของแต่ละแผ่น แล้วเอาค่าสูงสุดของทุกแผ่น
             max_used_length_per_sheet = [max((y + l) for _, l, y, *_ in shelf) for shelf in shelves]
-            max_used_length = max(max_used_length_per_sheet)  # ✅ ใช้ค่าที่ถูกต้อง
+            total_used_length = sum(max_used_length_per_sheet)  # ✅ ใช้ค่ารวมของทุกแผ่น
 
-            # ✅ พื้นที่รวมของแผ่นทั้งหมด (ใช้ max_used_length ที่ถูกต้อง)
-            total_sheet_area = sheet_width * max_used_length
+            # ✅ พื้นที่รวมของแผ่นทั้งหมด
+            total_sheet_area = sheet_width * total_used_length
         else:
             placements, sheets = algo(orders, sheet_width)
 
             # ✅ หาความยาวสูงสุดที่ใช้จริง
-            max_used_length = max((y + used_l) for _, _, _, y, _, used_l, _ in placements) if placements else 0
+            total_used_length = max((y + used_l) for _, _, _, y, _, used_l, _ in placements) if placements else 0
 
             # ✅ พื้นที่รวมของแผ่นทั้งหมด
-            total_sheet_area = sheet_width * max_used_length
+            total_sheet_area = sheet_width * total_used_length
 
         # ✅ ป้องกัน total_waste ไม่ให้ติดลบ
         total_waste = max(0, total_sheet_area - total_used_area)
@@ -87,7 +87,7 @@ if orders and st.button("🚀 คำนวณ"):
             "Processing Time (s)": round(proc_time, 6)
         })
 
-        results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets, max_used_length)
+        results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets, total_used_length)
 
     st.session_state.kpi_df = pd.DataFrame(kpi_rows)
     st.session_state.results = results
@@ -119,6 +119,6 @@ if st.session_state.calculated:
             st.pyplot(fig)
 
         else:
-            placements, sheets, max_used_length = st.session_state.results[selected_algo]
-            fig = plot_placements_guillotine(placements, sheets, sheet_width, max_used_length, selected_algo)
+            placements, sheets, total_used_length = st.session_state.results[selected_algo]
+            fig = plot_placements_guillotine(placements, sheets, sheet_width, total_used_length, selected_algo)
             st.plotly_chart(fig)
