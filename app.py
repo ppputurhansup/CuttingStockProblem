@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from algorithms import (
+from algorithms import(
     first_fit_decreasing_rotated,
     best_fit_decreasing_rotated,
     guillotine_cutting_rotated,
