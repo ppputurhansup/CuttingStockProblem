@@ -143,6 +143,7 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
 
             x_position = 0
             for order in valid_orders:
+                print(f"📌 Debug: Processing order =", order)  # ✅ Debugging
                 if isinstance(order, tuple) and len(order) == 3:
                     order_w, order_l, rotated = order
                 else:
@@ -172,7 +173,6 @@ def plot_placements_shelf_plotly(shelves, sheet_width, sheet_length, algorithm_n
         figs.append(fig)
 
     return figs
-
 # -----------------
 # 📌 Plot Guillotine (แก้ไขให้ถูกต้อง)
 # -----------------
