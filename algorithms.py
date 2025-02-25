@@ -172,26 +172,27 @@ def plot_placements_shelf_matplotlib(shelves, sheet_width, algorithm_name):
 # -----------------
 # 📌 Plot Guillotine (แก้ไขให้ถูกต้อง)
 # -----------------
-def plot_placements_guillotine(placements, sheet_width, algorithm_name):
+def plot_placements_guillotine(placements, sheets, sheet_width):
     fig = go.Figure()
 
-    for x, y, w, l, rotated in placements:
+    for s, order, x, y, used_w, used_l, rotated in placements:
         color = "lightcoral" if not rotated else "lightyellow"
         fig.add_trace(go.Scatter(
-            x=[x, x + w, x + w, x, x],
-            y=[y, y, y + l, y + l, y],
+            x=[x, x + used_w, x + used_w, x, x],
+            y=[y, y, y + used_l, y + used_l, y],
             fill="toself",
             line=dict(color="red"),
             fillcolor=color,
-            name=f"{w}x{l}" + (" R" if rotated else ""),
+            name=f"{used_w}x{used_l}" + (" R" if rotated else ""),
         ))
 
     fig.update_layout(
-        title=f"Guillotine Cutting ({algorithm_name})",
+        title=f"Guillotine Cutting Visualization",
         xaxis=dict(title="Width (cm)", range=[0, sheet_width]),
-        yaxis=dict(title="Height (cm)", autorange="reversed"),  # ✅ แก้ให้วางจากบนลงล่าง
+        yaxis=dict(title="Height (cm)", autorange="reversed"),
         showlegend=True,
         width=600, height=600
     )
 
     return fig
+
