@@ -1,45 +1,3 @@
-import streamlit as st
-import pandas as pd
-from algorithms import (
-    first_fit_decreasing_rotated,
-    best_fit_decreasing_rotated,
-    guillotine_cutting_rotated,
-    plot_placements_shelf_matplotlib,
-    plot_placements_guillotine
-)
-import time
-
-st.title("📦 Cutting Stock Problem with Unlimited Length")
-
-# --- รับขนาดแผ่น ---
-st.header("🔖 กำหนดขนาดแผ่นเมทัลชีท")
-sheet_width = st.number_input("ความกว้างของแผ่นเมทัลชีท (cm)", min_value=0.1, value=91.4)
-
-# --- รับออเดอร์ ---
-st.header("📥 เพิ่มออเดอร์")
-input_method = st.radio("เลือกวิธีกรอกข้อมูลออเดอร์", ["กรอกข้อมูลเอง", "อัปโหลดไฟล์ CSV"])
-
-orders = []
-if input_method == "กรอกข้อมูลเอง":
-    num_orders = st.number_input("จำนวนออเดอร์ที่ต้องการกรอก", min_value=1, step=1)
-    for i in range(num_orders):
-        col1, col2 = st.columns(2)
-        with col1:
-            width = st.number_input(f"ความกว้างออเดอร์ที่ {i+1} (cm)", min_value=0.1, key=f'w{i}')
-        with col2:
-            length = st.number_input(f"ความยาวออเดอร์ที่ {i+1} (cm)", min_value=0.1, key=f'l{i}')
-        orders.append((width, length))
-
-elif input_method == "อัปโหลดไฟล์ CSV":
-    uploaded_file = st.file_uploader("อัปโหลดไฟล์ CSV (ต้องมีคอลัมน์ 'Width' และ 'Length')", type="csv")
-    if uploaded_file:
-        df_orders = pd.read_csv(uploaded_file)
-        if "Width" in df_orders.columns and "Length" in df_orders.columns:
-            orders = list(zip(df_orders["Width"], df_orders["Length"]))
-            st.dataframe(df_orders)
-        else:
-            st.error("ไฟล์ CSV ต้องมีคอลัมน์ 'Width' และ 'Length'")
-
 # --- คำนวณเมื่อมีข้อมูลครบ ---
 if orders and st.button("🚀 คำนวณ"):
     results = {}
@@ -50,26 +8,26 @@ if orders and st.button("🚀 คำนวณ"):
     }
 
     kpi_rows = []
-    total_used_area = sum(w * l for w, l in orders)  # ✅ พื้นที่ทั้งหมดที่ใช้จริง
+    total_used_area = sum(w * l for w, l in orders)  # ✅ คำนวณพื้นที่ทั้งหมดที่ใช้จริง
 
     for name, algo in algorithms.items():
         start_time = time.time()
         if name != "Guillotine Rotated":
             shelves = algo(orders, sheet_width)
 
-            # ✅ หาความยาวสูงสุดของแต่ละแผ่น แล้วเอาค่าสูงสุดของทุกแผ่น
-            max_used_length_per_sheet = [max((y + l) for _, l, y, *_ in shelf) for shelf in shelves]
-            total_used_length = sum(max_used_length_per_sheet)  # ✅ ใช้ค่ารวมของทุกแผ่น
+            # ✅ หาค่าความยาวสูงสุดของแต่ละแผ่น (ความยาวสูงสุดของชิ้นที่ถูกตัดในแผ่นนั้น)
+            max_used_length_per_sheet = [max(l for _, l, *_ in shelf) for shelf in shelves]
+            total_used_length = sum(max_used_length_per_sheet)  # ✅ รวมค่าความยาวทั้งหมด
 
-            # ✅ พื้นที่รวมของแผ่นทั้งหมด
+            # ✅ คำนวณพื้นที่รวมของแผ่นที่ใช้
             total_sheet_area = sheet_width * total_used_length
         else:
             placements, sheets = algo(orders, sheet_width)
 
-            # ✅ หาความยาวสูงสุดที่ใช้จริง
+            # ✅ หาความยาวสูงสุดที่ถูกใช้จริงจาก Guillotine
             total_used_length = max((y + used_l) for _, _, _, y, _, used_l, _ in placements) if placements else 0
 
-            # ✅ พื้นที่รวมของแผ่นทั้งหมด
+            # ✅ คำนวณพื้นที่รวมของแผ่นที่ใช้
             total_sheet_area = sheet_width * total_used_length
 
         # ✅ ป้องกัน total_waste ไม่ให้ติดลบ
@@ -80,8 +38,10 @@ if orders and st.button("🚀 คำนวณ"):
 
         proc_time = time.time() - start_time
 
+        # ✅ **เพิ่ม total length used เข้าไปใน KPI Summary**
         kpi_rows.append({
             "Algorithm": name,
+            "Total Length Used (cm)": round(total_used_length, 2),  # 🔥 เพิ่มคอลัมน์นี้!
             "Total Waste (cm²)": round(total_waste, 2),
             "Utilization Efficiency (%)": f"{round(utilization_eff, 2)}%",
             "Processing Time (s)": round(proc_time, 6)
@@ -103,22 +63,4 @@ if "kpi_df" not in st.session_state:
 # --- แสดงผล KPI และ Visualization ---
 if st.session_state.calculated:
     st.subheader("📌 KPI Summary")
-    st.dataframe(st.session_state.kpi_df)
-
-    selected_algo = st.selectbox("🔍 เลือกอัลกอริทึมดู Visualization",
-                                 ["FFD Rotated", "BFD Rotated", "Guillotine Rotated"])
-
-    if selected_algo:
-        st.subheader(f"📑 รายละเอียดการวาง (per sheet) ของ {selected_algo}")
-        
-        if selected_algo != "Guillotine Rotated":
-            shelves = st.session_state.results[selected_algo]
-        
-            # 🔥 ใช้ Matplotlib แทน
-            fig = plot_placements_shelf_matplotlib(shelves, sheet_width, selected_algo)
-            st.pyplot(fig)
-
-        else:
-            placements, sheets, total_used_length = st.session_state.results[selected_algo]
-            fig = plot_placements_guillotine(placements, sheets, sheet_width, total_used_length, selected_algo)
-            st.plotly_chart(fig)
+    st.dataframe(st.session_state.kpi_df)  # ✅ แสดง KPI Summary พร้อม Total Length Used
