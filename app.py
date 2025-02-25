@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from algorithms import(
+from algorithms import (
     first_fit_decreasing_rotated,
     best_fit_decreasing_rotated,
     guillotine_cutting_rotated,
@@ -54,16 +54,19 @@ if orders and st.button("🚀 คำนวณ"):
 
     for name, algo in algorithms.items():
         start_time = time.time()
+
         if name != "Guillotine Rotated":
             shelves = algo(orders, sheet_width)
             
-            # ✅ รองรับ tuple ที่มีมากกว่า 2 ค่า
+            # ✅ ปรับให้รองรับ tuple ที่มีมากกว่า 2 ค่า
             total_shelf_area = sum(sum(w * l for w, l, *_ in shelf) for shelf in shelves)
-            total_waste = sum(sheet_width - sum(w for w, _, *_ in shelf) for shelf in shelves if isinstance(shelf, list))
+            total_sheet_length_used = max(sum(l for _, l, *_ in shelf) for shelf in shelves) if shelves else 0
+            total_waste = (sheet_width * total_sheet_length_used) - total_used_area  
+
         else:
             placements, sheets = algo(orders, sheet_width)
             
-            # ✅ คำนวณ total_sheet_length_used
+            # ✅ คำนวณ total_sheet_length_used (ความยาวที่ถูกใช้จริง)
             if placements:
                 total_sheet_length_used = max((y + used_l) for _, _, _, y, _, used_l, _ in placements)
             else:
@@ -75,7 +78,7 @@ if orders and st.button("🚀 คำนวณ"):
             # ✅ ปรับปรุงการคำนวณ Waste ใหม่
             total_waste = (sheet_width * total_sheet_length_used) - used_area  
 
-        utilization_eff = (total_shelf_area / (total_shelf_area + total_waste)) * 100 if total_shelf_area + total_waste > 0 else 0
+        utilization_eff = (total_used_area / (total_used_area + total_waste)) * 100 if (total_used_area + total_waste) > 0 else 0
         proc_time = time.time() - start_time
 
         kpi_rows.append({
