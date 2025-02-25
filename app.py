@@ -73,7 +73,7 @@ if orders and st.button("🚀 คำนวณ"):
         else:
             placements, sheets = algo(orders, sheet_width)
             sheets_used = len(sheets)
-            total_waste = (sheets_used * sheet_width * 99999) - total_used_area  # ✅ แก้ตรงนี้
+            total_waste = sum(sheet_width * max(y + used_l for _, _, _, y, _, used_l, _ in placements)) - total_used_area
 
         proc_time = time.time() - start_time
 
