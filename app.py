@@ -13,7 +13,7 @@ st.title("📦 Cutting Stock Problem with Unlimited Length")
 
 # --- รับขนาดแผ่น ---
 st.header("🔖 กำหนดขนาดแผ่นเมทัลชีท")
-sheet_width = st.number_input("ความกว้างของแผ่นเมทัลชีท (cm)", min_value=0.0, value=91.4)
+sheet_width = st.number_input("ความกว้างของแผ่นเมทัลชีท (cm)", min_value=0.1, value=91.4)
 
 # --- รับออเดอร์ ---
 st.header("📥 เพิ่มออเดอร์")
@@ -40,10 +40,8 @@ elif input_method == "อัปโหลดไฟล์ CSV":
         else:
             st.error("ไฟล์ CSV ต้องมีคอลัมน์ 'Width' และ 'Length'")
 
-# --- เริ่มคำนวณเมื่อมีข้อมูลครบ ---
+# --- คำนวณเมื่อมีข้อมูลครบ ---
 if orders and st.button("🚀 คำนวณ"):
-    total_used_area = sum(w * l for w, l in orders)
-
     results = {}
     algorithms = {
         "FFD Rotated": first_fit_decreasing_rotated,
@@ -52,23 +50,20 @@ if orders and st.button("🚀 คำนวณ"):
     }
 
     kpi_rows = []
+    total_used_area = sum(w * l for w, l in orders)
 
     for name, algo in algorithms.items():
         start_time = time.time()
         if name != "Guillotine Rotated":
             shelves = algo(orders, sheet_width)
             sheets_used = len(shelves)
-
-            # ✅ คำนวณ Waste ใหม่ (ไม่ต้องใช้ `sheet_length`)
             total_waste = sum(sheet_width - sum(w for w, _, _ in shelf) for shelf in shelves)
-
         else:
             placements, sheets = algo(orders, sheet_width)
             sheets_used = len(sheets)
             total_waste = sum(sum(rw * rh for (_, _, rw, rh) in sheet) for sheet in sheets)
 
-        total_shelf_area = sum(sum(w * l for w, l, _ in shelf) for shelf in shelves) if name != "Guillotine Rotated" else total_used_area
-        utilization_eff = (total_shelf_area / (sheets_used * sheet_width * 99999)) * 100  # ใช้ค่าความยาวสูงมากแทน
+        utilization_eff = (total_used_area / (sheets_used * sheet_width * 99999)) * 100  
         proc_time = time.time() - start_time
 
         kpi_rows.append({
@@ -92,6 +87,7 @@ if "results" not in st.session_state:
 if "kpi_df" not in st.session_state:
     st.session_state.kpi_df = pd.DataFrame()
 
+# --- แสดงผล KPI และ Visualization ---
 if st.session_state.calculated:
     st.subheader("📌 KPI Summary")
     st.dataframe(st.session_state.kpi_df)
@@ -101,15 +97,14 @@ if st.session_state.calculated:
 
     if selected_algo:
         st.subheader(f"📑 รายละเอียดการวาง (per sheet) ของ {selected_algo}")
-    
+
         if selected_algo != "Guillotine Rotated":
             shelves = st.session_state.results[selected_algo]
             figs = plot_placements_shelf_plotly(shelves, sheet_width, 99999, selected_algo)
             for fig in figs:
                 st.plotly_chart(fig)
-    
+
         else:
             placements, sheets = st.session_state.results[selected_algo]
             fig = plot_placements_guillotine(placements, sheets, sheet_width, 99999, selected_algo)
-            st.plotly_chart(fig)  # ✅ ใช้ st.plotly_chart แทน st.pyplot
-    
+            st.plotly_chart(fig)
