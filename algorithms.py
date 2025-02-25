@@ -78,63 +78,36 @@ def best_fit_decreasing_rotated(orders, sheet_width):
 # 3. Guillotine Cutting with Rotation
 # ----------------------------------------
 def guillotine_cutting_rotated(orders, sheet_width):
-    sheets = [[]]
     placements = []
+    free_rects = [(0, 0, sheet_width, float('inf'))]  # ✅ ไม่มีข้อจำกัดความยาว
     orders_sorted = sorted(orders, key=lambda x: max(x[0], x[1]), reverse=True)
 
     for order in orders_sorted:
         w, l = order
         placed = False
 
-        for s, free_rects in enumerate(sheets):
-            for i, rect in enumerate(free_rects):
-                rx, ry, rw, rh = rect
-                if w <= rw and l <= rh:
-                    placements.append((s, order, rx, ry, w, l, False))
-                    
-                    # ✅ ปรับปรุงการสร้างพื้นที่ใหม่ (ตรวจสอบค่าติดลบ)
-                    new_rects = []
-                    if rw - w > 0:
-                        new_rects.append((rx + w, ry, rw - w, rh))
-                    if rh - l > 0:
-                        new_rects.append((rx, ry + l, rw, rh - l))
-                    
-                    free_rects.pop(i)
-                    free_rects.extend(new_rects)
-                    placed = True
-                    break
-
-                elif l <= rw and w <= rh:
-                    placements.append((s, order, rx, ry, l, w, True))
-                    
-                    # ✅ ปรับปรุงการสร้างพื้นที่ใหม่ (ตรวจสอบค่าติดลบ)
-                    new_rects = []
-                    if rw - l > 0:
-                        new_rects.append((rx + l, ry, rw - l, rh))
-                    if rh - w > 0:
-                        new_rects.append((rx, ry + w, rw, rh - w))
-                    
-                    free_rects.pop(i)
-                    free_rects.extend(new_rects)
-                    placed = True
-                    break
-
-            if placed:
+        for i, (rx, ry, rw, rh) in enumerate(free_rects):
+            if w <= rw and l <= rh:
+                placements.append((rx, ry, w, l, False))
+                new_rects = [(rx + w, ry, rw - w, rh), (rx, ry + l, rw, rh - l)]
+                free_rects.pop(i)
+                free_rects.extend([r for r in new_rects if r[2] > 0 and r[3] > 0])
+                placed = True
+                break
+            elif l <= rw and w <= rh:
+                placements.append((rx, ry, l, w, True))
+                new_rects = [(rx + l, ry, rw - l, rh), (rx, ry + w, rw, rh - w)]
+                free_rects.pop(i)
+                free_rects.extend([r for r in new_rects if r[2] > 0 and r[3] > 0])
+                placed = True
                 break
 
         if not placed:
-            # ✅ ถ้าวาง order ไม่ได้ ให้วางลงบนแผ่นใหม่
-            new_sheet_free_rects = [(0, 0, sheet_width, float('inf'))]
-            sheets.append(new_sheet_free_rects)
+            new_y = max(y + h for _, y, _, h in placements) if placements else 0
+            free_rects.append((0, new_y, sheet_width, float('inf')))
+            placements.append((0, new_y, w, l, False))
 
-            placements.append((len(sheets)-1, order, 0, 0, w, l, False))
-            new_rects = []
-            if sheet_width - w > 0:
-                new_rects.append((w, 0, sheet_width - w, l))
-            new_rects.append((0, l, sheet_width, float('inf') - l))
-            new_sheet_free_rects.extend(new_rects)
-
-    return placements, sheets
+    return placements
 
 # -----------------
 # 📌 Plot FFD/BFD (แก้ไขให้ถูกต้อง)
