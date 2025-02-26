@@ -90,7 +90,7 @@ if orders and st.button("🚀 คำนวณ"):
             "Length Used (cm)": round(total_used_length, 2),
             "Total Waste (cm²)": round(total_waste, 2),
             "Utilization Efficiency (%)": f"{round(utilization_eff, 2)}%",
-            "Processing Time (s)": round(proc_time, 6)
+            "Processing Time (s)": round(proc_time, 6),
             "📈 ราคาขาย (บาท)": f"{round(price_sold, 2):,}",
             "📉 ค่าเสียโอกาส (บาท)": f"{round(price_lost, 2):,}"
         })
