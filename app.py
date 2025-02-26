@@ -14,7 +14,12 @@ st.title("📦 Cutting Stock Problem with Unlimited Length")
 # --- กำหนดขนาดแผ่น ---
 st.header("🔖 กำหนดขนาดแผ่นเมทัลชีท")
 sheet_width = st.number_input("ความกว้างของแผ่นเมทัลชีท (cm)", min_value=0.1, value=91.4)
+# ✅ เพิ่มช่อง input "ราคา/เมตร"
+st.header("💰 กำหนดราคาเมทัลชีท")
+price_per_meter = st.number_input("ราคาเมทัลชีท (บาท/เมตร)", min_value=0.1, value=100.0)
 
+# ✅ แปลงราคา/เมตร → ราคา/เมตร²
+price_per_m2 = price_per_meter / (sheet_width / 100)  # (บาท/เมตร) ÷ (เมตร)
 # ✅ **กำหนดค่าเริ่มต้นให้ orders**
 orders = []  
 
@@ -70,6 +75,13 @@ if orders and st.button("🚀 คำนวณ"):
 
         total_waste = max(0, total_sheet_area - total_used_area)
         utilization_eff = min((total_used_area / total_sheet_area) * 100 if total_sheet_area > 0 else 0, 100)
+        
+        # ✅ **คำนวณ "ราคาขาย" และ "ค่าเสียโอกาส" โดยแปลง cm² → m²**
+        total_sheet_area_m2 = total_sheet_area / 10_000  # แปลง cm² → m²
+        total_waste_m2 = total_waste / 10_000  # แปลง cm² → m²
+
+        price_sold = price_per_m2 * total_sheet_area_m2
+        price_lost = price_per_m2 * total_waste_m2
 
         proc_time = time.time() - start_time
 
@@ -79,6 +91,8 @@ if orders and st.button("🚀 คำนวณ"):
             "Total Waste (cm²)": round(total_waste, 2),
             "Utilization Efficiency (%)": f"{round(utilization_eff, 2)}%",
             "Processing Time (s)": round(proc_time, 6)
+            "📈 ราคาขาย (บาท)": f"{round(price_sold, 2):,}",
+            "📉 ค่าเสียโอกาส (บาท)": f"{round(price_lost, 2):,}"
         })
 
         results[name] = shelves if name != "Guillotine Rotated" else (placements, sheets, total_used_length)
