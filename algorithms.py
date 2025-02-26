@@ -78,7 +78,7 @@ def best_fit_decreasing_rotated(orders, sheet_width):
 # 3. Guillotine Cutting with Rotation
 # ----------------------------------------
 def guillotine_cutting_rotated(orders, sheet_width):
-    sheets = [[]]  # ✅ ตรวจสอบให้แน่ใจว่า sheets เริ่มต้นเป็นรายการเปล่า
+    sheets = [[]]
     placements = []
     orders_sorted = sorted(orders, key=lambda x: max(x[0], x[1]), reverse=True)
 
@@ -91,49 +91,26 @@ def guillotine_cutting_rotated(orders, sheet_width):
                 rx, ry, rw, rh = rect
                 if w <= rw and l <= rh:
                     placements.append((s, order, rx, ry, w, l, False))
-
-                    new_rects = []
-                    if rw - w > 0:
-                        new_rects.append((rx + w, ry, rw - w, rh))
-                    if rh - l > 0:
-                        new_rects.append((rx, ry + l, rw, rh - l))
-
+                    new_rects = [(rx+w, ry, rw - w, l), (rx, ry+l, rw, rh - l)]
                     free_rects.pop(i)
                     free_rects.extend(new_rects)
                     placed = True
                     break
-
                 elif l <= rw and w <= rh:
                     placements.append((s, order, rx, ry, l, w, True))
-
-                    new_rects = []
-                    if rw - l > 0:
-                        new_rects.append((rx + l, ry, rw - l, rh))
-                    if rh - w > 0:
-                        new_rects.append((rx, ry + w, rw, rh - w))
-
+                    new_rects = [(rx+l, ry, rw - l, w), (rx, ry+w, rw, rh - w)]
                     free_rects.pop(i)
                     free_rects.extend(new_rects)
                     placed = True
                     break
-
             if placed:
                 break
 
         if not placed:
-            # ✅ แก้บั๊ก: เพิ่มแผ่นใหม่
             new_sheet_free_rects = [(0, 0, sheet_width, float('inf'))]
             sheets.append(new_sheet_free_rects)
-
-            placements.append((len(sheets)-1, order, 0, 0, w, l, False))
-            new_rects = []
-            if sheet_width - w > 0:
-                new_rects.append((w, 0, sheet_width - w, l))
-            new_rects.append((0, l, sheet_width, float('inf') - l))
-            new_sheet_free_rects.extend(new_rects)
-
-    return placements, sheets  # ✅ ตรวจสอบว่า return แค่ 2 ค่าเท่านั้น
-
+    
+    return placements, sheets
 # -----------------
 # 📌 Plot FFD/BFD (แก้ไขให้ถูกต้อง)
 # -----------------
@@ -172,7 +149,7 @@ def plot_placements_shelf_matplotlib(shelves, sheet_width, algorithm_name):
 # -----------------
 # 📌 Plot Guillotine (แก้ไขให้ถูกต้อง)
 # -----------------
-def plot_placements_guillotine(placements, sheets, sheet_width):
+def plot_placements_guillotine(placements, sheets, sheet_width, sheet_length, algorithm_name):
     fig = go.Figure()
 
     for s, order, x, y, used_w, used_l, rotated in placements:
@@ -187,12 +164,11 @@ def plot_placements_guillotine(placements, sheets, sheet_width):
         ))
 
     fig.update_layout(
-        title=f"Guillotine Cutting Visualization",
+        title=f"Guillotine Cutting ({algorithm_name})",
         xaxis=dict(title="Width (cm)", range=[0, sheet_width]),
-        yaxis=dict(title="Height (cm)", autorange="reversed"),
+        yaxis=dict(title="Height (cm)", range=[0, sheet_length], autorange="reversed"),  # ✅ พลิกแกน Y
         showlegend=True,
         width=600, height=600
     )
 
     return fig
-
